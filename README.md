@@ -1,13 +1,8 @@
 # EranoAPI-Parent
-
 This project is a Java-based API parent module.
-
-## Features
-
 - Modular structure
 - Easy setup
 - Open source under the MIT license
-
 
 ## Usage
 

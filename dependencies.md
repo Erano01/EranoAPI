@@ -1,3 +1,12 @@
+### How to install dependencies for dev environment:
+```
+// Linux
+cd ~/JavaWorkspace/EranoAPI-Parent
+./scripts/build-spigot-jars.sh
+
+// Windows
+- /scripts/build-spigot-jars.bat
+```
 ### Minecraft Versions JDK Requirements
 ```
 minecraft min java (LTS - Long Term Support) requirements:
