@@ -28,3 +28,6 @@ test-output/
 #bunları gönderme github actionsda build edicez zaten.
 **/target/
 *.jar
+
+# Local planning notes, not pushed to GitHub
+architecture-refactoring-plan.md

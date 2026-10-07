@@ -1,0 +1,85 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>io.github.erano01</groupId>
+		<artifactId>EranoAPI</artifactId>
+		<version>1.0.0</version>
+		<relativePath>../../pom.xml</relativePath>
+	</parent>
+	<artifactId>EranoAPI-Dist</artifactId>
+
+	<!-- The plugin jar server owners drop into plugins/: core + every NMS module, selected at runtime
+	     through META-INF/services. Not a library, so it's never published. -->
+	<properties>
+		<maven.deploy.skip>true</maven.deploy.skip>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>io.github.erano01</groupId>
+			<artifactId>EranoAPI-Spigot</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V26_3</artifactId><version>${project.version}</version></dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V26_2</artifactId><version>${project.version}</version></dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V26_1</artifactId><version>${project.version}</version></dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_21_R7</artifactId><version>${project.version}</version></dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_21_R6</artifactId><version>${project.version}</version></dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_21_R5</artifactId><version>${project.version}</version></dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_21_R4</artifactId><version>${project.version}</version></dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_21_R3</artifactId><version>${project.version}</version></dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_21_R2</artifactId><version>${project.version}</version></dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_21_R1</artifactId><version>${project.version}</version></dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_20_R4</artifactId><version>${project.version}</version></dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_20_R3</artifactId><version>${project.version}</version></dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_20_R2</artifactId><version>${project.version}</version></dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_20_R1</artifactId><version>${project.version}</version></dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_19_R3</artifactId><version>${project.version}</version></dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_19_R2</artifactId><version>${project.version}</version></dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_19_R1</artifactId><version>${project.version}</version></dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_18_R2</artifactId><version>${project.version}</version></dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_18_R1</artifactId><version>${project.version}</version></dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_17_R1</artifactId><version>${project.version}</version></dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_16_R3</artifactId><version>${project.version}</version></dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_16_R2</artifactId><version>${project.version}</version></dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_16_R1</artifactId><version>${project.version}</version></dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_15_R1</artifactId><version>${project.version}</version></dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_14_R1</artifactId><version>${project.version}</version></dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_13_R2</artifactId><version>${project.version}</version></dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_13_R1</artifactId><version>${project.version}</version></dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_12_R1</artifactId><version>${project.version}</version></dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_11_R1</artifactId><version>${project.version}</version></dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_10_R1</artifactId><version>${project.version}</version></dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_9_R2</artifactId><version>${project.version}</version></dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_9_R1</artifactId><version>${project.version}</version></dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_8_R3</artifactId><version>${project.version}</version></dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_8_R2</artifactId><version>${project.version}</version></dependency>
+		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_8_R1</artifactId><version>${project.version}</version></dependency>
+	</dependencies>
+
+	<build>
+		<finalName>EranoAPI</finalName>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>3.5.0</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<transformers>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+							</transformers>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>

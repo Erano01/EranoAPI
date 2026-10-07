@@ -3,15 +3,20 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>me.erano.com</groupId>
-	<artifactId>EranoAPI-Parent</artifactId>
-	<version>1.0</version>
+	<!-- io.github.erano01: Maven Central namespace verified through the GitHub account. -->
+	<groupId>io.github.erano01</groupId>
+	<artifactId>EranoAPI</artifactId>
+	<version>1.0.0</version>
 	<packaging>pom</packaging>
 
+	<name>EranoAPI</name>
+	<url>https://github.com/Erano01/EranoAPI</url>
+
 	<modules>
-		<module>EranoAPI</module>
-		<module>NMS</module>
-		<module>Dist</module>
+		<module>Common</module>
+		<module>Spigot/Core</module>
+		<module>Spigot/NMS</module>
+		<module>Spigot/Dist</module>
 	</modules>
 
 	<!-- Properties defined here are inherited by all modules -->
@@ -50,26 +55,16 @@
 		</plugins>
 	</build>
 
-	<!-- Repositories declared here are inherited by all modules -->
+	<!-- Repositories declared here are inherited by all modules.
+	     Spigot server jars (org.spigotmc:spigot) aren't published anywhere: build them into ~/.m2
+	     with scripts/build-spigot-jars.sh. -->
 	<repositories>
-
-		<repository>
-			<id>github</id>
-			<name>GitHub Erano01 Spigot Packages</name>
-			<url>https://maven.pkg.github.com/Erano01/EranoAPI-Parent</url>
-		</repository>
-
-		<!-- spigot, bukkit, remapped spigot versions repo for +1.16 versions-->
+		<!-- spigot-api, bungeecord-chat, remapped spigot artifacts -->
 		<repository>
 			<id>spigot-repo</id>
 			<url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
 		</repository>
-		<!-- this repo needed under 1.16 versions-->
-		<repository>
-			<id>sonatype</id>
-			<url>https://oss.sonatype.org/content/groups/public/</url>
-		</repository>
-		<!-- vanilla versions -->
+		<!-- vanilla libraries (brigadier, datafixerupper, authlib...) -->
 		<repository>
 			<id>minecraft-repo</id>
 			<url>https://libraries.minecraft.net/</url>
