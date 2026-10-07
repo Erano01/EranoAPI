@@ -1,5 +1,5 @@
 name: EranoAPI
-version: 1.0
+version: ${project.version}
 main: me.erano.com.api.CorePlugin
 #api-version can be 1.13 min
 api-version: 1.13

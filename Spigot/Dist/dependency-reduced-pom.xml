@@ -3,7 +3,7 @@
   <parent>
     <artifactId>EranoAPI</artifactId>
     <groupId>io.github.erano01</groupId>
-    <version>1.0.0</version>
+    <version>1.0.0-alpha.1</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>

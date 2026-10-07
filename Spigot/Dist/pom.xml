@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>io.github.erano01</groupId>
 		<artifactId>EranoAPI</artifactId>
-		<version>1.0.0</version>
+		<version>1.0.0-alpha.1</version>
 		<relativePath>../../pom.xml</relativePath>
 	</parent>
 	<artifactId>EranoAPI-Dist</artifactId>

@@ -1,0 +1,127 @@
+name: Spigot
+
+# Spigot server jars come from BuildTools and are never published anywhere (they contain Mojang's code,
+# which may not be redistributed). They only live in ~/.m2, kept in this repository's Actions cache,
+# which isn't downloadable like workflow artifacts are. They're built once: every run restores the
+# cache and BuildTools only runs for versions that are missing (the very first run builds all 35 and
+# takes a few hours).
+#
+# Releases don't depend on this workflow: the published artifacts (Common, Core, Forge, Fabric) don't
+# need any Spigot server jar.
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'Spigot/**'
+      - 'Common/**'
+      - 'pom.xml'
+      - 'scripts/build-spigot-jars.sh'
+      - '.github/workflows/spigot.yml'
+  pull_request:
+    paths:
+      - 'Spigot/**'
+      - 'Common/**'
+      - 'pom.xml'
+      - 'scripts/build-spigot-jars.sh'
+      - '.github/workflows/spigot.yml'
+  # GitHub deletes cache entries nobody accessed for 7 days. Restoring the cache twice a week keeps
+  # the Spigot jars alive, and doubles as a check that every NMS module still compiles.
+  schedule:
+    - cron: '0 4 * * 1,4'
+  workflow_dispatch:
+
+# A BuildTools run can take hours: queue new runs instead of cancelling one halfway.
+concurrency:
+  group: spigot-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  spigot:
+    name: Spigot (Common + Core + NMS + Dist)
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    steps:
+      - uses: actions/checkout@v7
+
+      # BuildTools needs several GB per build on top of ~/.m2; the runner ships ~14 GB free.
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h /
+
+      - name: Set up JDKs 8, 11, 17, 21, 25
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          # The last one becomes JAVA_HOME: Maven needs 25 (26.x Spigot jars are Java 25 class files).
+          java-version: |
+            8
+            11
+            17
+            21
+            25
+
+      # actions/cache stays on v4 until the first Spigot cache exists: it was saved with v4.
+      - name: Restore ~/.m2 (Spigot jars from BuildTools)
+        id: m2-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.m2/repository
+          key: m2-spigot-${{ hashFiles('scripts/build-spigot-jars.sh') }}-${{ github.run_id }}
+          restore-keys: |
+            m2-spigot-${{ hashFiles('scripts/build-spigot-jars.sh') }}-
+            m2-spigot-
+
+      - name: Count Spigot jars before
+        id: before
+        run: echo "count=$(find ~/.m2/repository/org/spigotmc/spigot -name '*.jar' 2>/dev/null | wc -l)" >> "$GITHUB_OUTPUT"
+
+      # BuildTools applies patches with git, which needs an identity.
+      - name: Configure git for BuildTools
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@users.noreply.github.com"
+
+      - name: Build missing Spigot jars (BuildTools)
+        env:
+          JAVA8_HOME: ${{ env.JAVA_HOME_8_X64 }}
+          JAVA11_HOME: ${{ env.JAVA_HOME_11_X64 }}
+          JAVA17_HOME: ${{ env.JAVA_HOME_17_X64 }}
+          JAVA21_HOME: ${{ env.JAVA_HOME_21_X64 }}
+          JAVA25_HOME: ${{ env.JAVA_HOME_25_X64 }}
+          BUILDTOOLS_DIR: ${{ runner.temp }}/buildtools
+          CLEAN_AFTER_BUILD: '1'
+        run: ./scripts/build-spigot-jars.sh
+
+      - name: Count Spigot jars after
+        id: after
+        if: always()
+        run: echo "count=$(find ~/.m2/repository/org/spigotmc/spigot -name '*.jar' 2>/dev/null | wc -l)" >> "$GITHUB_OUTPUT"
+
+      # Only from main (pull requests can read main's cache but would only add entries nobody else can
+      # use), only when something new was built (each entry is a few GB, the cache limit is 10 GB), and
+      # even when a later version failed, so what already worked is never built twice.
+      - name: Save ~/.m2
+        if: always() && github.ref == 'refs/heads/main' && steps.after.outputs.count != steps.before.outputs.count
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ steps.m2-restore.outputs.cache-primary-key }}
+
+      - name: Upload BuildTools logs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: buildtools-logs
+          path: ${{ runner.temp }}/buildtools/logs
+          if-no-files-found: ignore
+
+      - name: Maven build and tests
+        run: mvn -B verify
+
+      - name: Upload EranoAPI.jar
+        uses: actions/upload-artifact@v7
+        with:
+          name: EranoAPI-spigot
+          path: Spigot/Dist/target/EranoAPI.jar

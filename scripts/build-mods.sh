@@ -6,7 +6,8 @@
 #
 #   1. mvn install in the repository root -> EranoAPI-Common in ~/.m2 (the version projects read it
 #      from mavenLocal)
-#   2. ./gradlew build publishToMavenLocal in every version project. Gradle itself runs on JDK 25
+#   2. ./gradlew clean build publishToMavenLocal in every version project (clean: no stale jars of a
+#      previous version end up in build/mods). Gradle itself runs on JDK 25
 #      (Loom 1.18 / current ForgeGradle require it); each project targets its Minecraft version's Java
 #      through its own toolchain / release setting. A project whose toolchain needs an older Gradle JVM
 #      (e.g. legacy ForgeGradle) sets build_java=<N> in its gradle.properties.
@@ -74,8 +75,8 @@ build_project() {
     fi
 
     log "$project with Java $java -> log: $logfile"
-    if (cd "$ROOT/$project" && JAVA_HOME="$jdk" ./gradlew build publishToMavenLocal --console=plain) > "$logfile" 2>&1; then
-        find "$ROOT/$project/build/libs" -name '*.jar' ! -name '*-sources.jar' -exec cp {} "$OUT_DIR/" \;
+    if (cd "$ROOT/$project" && JAVA_HOME="$jdk" ./gradlew clean build publishToMavenLocal --console=plain) > "$logfile" 2>&1; then
+        find "$ROOT/$project/build/libs" -name '*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' -exec cp {} "$OUT_DIR/" \;
         BUILT+=("$project")
     else
         warn "$project failed, see $logfile"
@@ -91,7 +92,7 @@ build_project() {
 
 main() {
     mkdir -p "$OUT_DIR" "$LOG_DIR"
-    rm -f "$LOG_DIR/failed.txt"
+    rm -f "$LOG_DIR/failed.txt" "$OUT_DIR"/*.jar
 
     if [ "${SKIP_MAVEN:-0}" != "1" ]; then
         local jdk25

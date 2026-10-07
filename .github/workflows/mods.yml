@@ -1,0 +1,192 @@
+name: Forge / Fabric
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: mods-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Forge/V* and Fabric/V* are independent Gradle builds; build them in parallel.
+  discover-mods:
+    name: Find Forge / Fabric projects
+    runs-on: ubuntu-latest
+    outputs:
+      projects: ${{ steps.list.outputs.projects }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: list
+        run: |
+          projects=$(for d in Forge/V* Fabric/V*; do [ -x "$d/gradlew" ] && echo "$d"; done | jq -R . | jq -sc .)
+          echo "projects=$projects" >> "$GITHUB_OUTPUT"
+
+  mods:
+    name: ${{ matrix.project }}
+    needs: discover-mods
+    if: needs.discover-mods.outputs.projects != '[]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ${{ fromJson(needs.discover-mods.outputs.projects) }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up JDKs 21, 25
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          # Gradle runs on 25 (Loom 1.18 / ForgeGradle 7); 1.21.11 projects target 21.
+          java-version: |
+            21
+            25
+
+      # No Gradle cache: the Minecraft dependencies of six projects would fill the repository's 10 GB
+      # Actions cache and evict the Spigot jars (spigot.yml), which take hours to rebuild.
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-disabled: true
+
+      # EranoAPI-Common doesn't need any Spigot jar (see spigot.yml).
+      - name: Install EranoAPI-Common into ~/.m2
+        run: mvn -B -pl Common -am install -DskipTests
+
+      - name: Build ${{ matrix.project }}
+        env:
+          JAVA21_HOME: ${{ env.JAVA_HOME_21_X64 }}
+          JAVA25_HOME: ${{ env.JAVA_HOME_25_X64 }}
+          SKIP_MAVEN: '1'
+        run: ./scripts/build-mods.sh "${{ matrix.project }}"
+
+      - name: Name artifact
+        id: name
+        run: echo "value=$(echo '${{ matrix.project }}' | tr '/' '-')" >> "$GITHUB_OUTPUT"
+
+      - name: Upload jar
+        uses: actions/upload-artifact@v7
+        with:
+          name: EranoAPI-${{ steps.name.outputs.value }}
+          path: build/mods/*.jar
+
+      - name: Upload build log
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: log-${{ steps.name.outputs.value }}
+          path: build/mods/logs
+
+  # Tag vX.Y.Z -> one Maven Central deployment with every Maven and Gradle artifact. USER_MANAGED: the
+  # deployment is validated, then waits for "Publish" at https://central.sonatype.com/publishing.
+  # Doesn't wait for spigot.yml: nothing published needs a Spigot server jar, so BuildTools never runs here.
+  release:
+    name: Publish to Maven Central
+    needs: [ mods ]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up JDKs 21, 25
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: |
+            21
+            25
+
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-disabled: true
+
+      - name: Check that the tag matches the project versions
+        run: |
+          tag=${GITHUB_REF_NAME#v}
+          maven=$(sed -n 's|^\t<version>\(.*\)</version>$|\1|p' pom.xml | head -1)
+          [ "$tag" = "$maven" ] || { echo "Tag $tag != pom.xml version $maven"; exit 1; }
+          for f in Forge/V*/gradle.properties Fabric/V*/gradle.properties; do
+            v=$(sed -n 's/^\(mod_\)\{0,1\}version=\(.*\)/\2/p' "$f")
+            [ "${v%%+*}" = "$tag" ] || { echo "$f: version $v doesn't start with $tag+"; exit 1; }
+          done
+
+      - name: Publish
+        env:
+          JAVA25_HOME: ${{ env.JAVA_HOME_25_X64 }}
+          MAVEN_GPG_KEY: ${{ secrets.MAVEN_GPG_KEY }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+          CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
+          PUBLISHING_TYPE: USER_MANAGED
+        run: ./scripts/publish-central.sh
+
+  # Tag vX.Y.Z -> the Spigot plugin jar for the GitHub release. The NMS modules compile against the
+  # Spigot jars spigot.yml keeps in the Actions cache; this job only restores them and never runs
+  # BuildTools. EranoAPI.jar holds only EranoAPI's own classes, so it can be distributed anywhere.
+  plugin-jar:
+    name: EranoAPI.jar (Spigot plugin)
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 25
+
+      - name: Restore ~/.m2 (Spigot jars, see spigot.yml)
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.m2/repository
+          key: m2-spigot-${{ hashFiles('scripts/build-spigot-jars.sh') }}-${{ github.run_id }}
+          restore-keys: |
+            m2-spigot-${{ hashFiles('scripts/build-spigot-jars.sh') }}-
+            m2-spigot-
+          # No cache: run spigot.yml on main first (it rebuilds the Spigot jars), then re-run this job.
+          fail-on-cache-miss: true
+
+      - name: Build EranoAPI.jar
+        run: mvn -B package -pl Spigot/Dist -am -DskipTests
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: EranoAPI-plugin
+          path: Spigot/Dist/target/EranoAPI.jar
+
+  # Tag vX.Y.Z -> a draft GitHub release with EranoAPI.jar (server owners) and every Forge / Fabric jar
+  # (players). Draft: check it and press "Publish release", like the Central deployment. A version with a
+  # suffix (1.0.0-alpha.1) is marked as a pre-release.
+  github-release:
+    name: GitHub release
+    needs: [ mods, plugin-jar ]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: EranoAPI-*
+          path: dist
+          merge-multiple: true
+
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ls -la dist
+          version=${GITHUB_REF_NAME#v}
+          prerelease=()
+          [[ $version == *-* ]] && prerelease=(--prerelease)
+          gh release create "$GITHUB_REF_NAME" dist/*.jar --draft "${prerelease[@]}" \
+            --title "EranoAPI $version" --generate-notes

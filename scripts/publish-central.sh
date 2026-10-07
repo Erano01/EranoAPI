@@ -54,7 +54,7 @@ mkdir -p "$STAGING"
 # 1. Maven. deploy also installs, so EranoAPI-Common lands in ~/.m2 for the Gradle builds below.
 #    Only Common and Core (+ the parent pom): the NMS modules would need every Spigot jar and are internal.
 log "Maven: EranoAPI, EranoAPI-Common, EranoAPI-Spigot"
-(cd "$ROOT" && mvn -B -q -Prelease -pl Common,Spigot/Core -am deploy -DskipTests \
+(cd "$ROOT" && mvn -B -q -Prelease -pl Common,Spigot/Core -am deploy \
     -DaltDeploymentRepository="staging::file://$STAGING") || die "Maven release build failed"
 
 # 2. Gradle: every Forge / Fabric version project.
