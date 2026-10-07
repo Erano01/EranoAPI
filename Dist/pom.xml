@@ -18,6 +18,42 @@
 		</dependency>
 		<dependency>
 			<groupId>me.erano.com</groupId>
+			<artifactId>V26_3</artifactId>
+			<version>1.0</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>me.erano.com</groupId>
+			<artifactId>V26_2</artifactId>
+			<version>1.0</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>me.erano.com</groupId>
+			<artifactId>V26_1</artifactId>
+			<version>1.0</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>me.erano.com</groupId>
+			<artifactId>V1_21_R7</artifactId>
+			<version>1.0</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>me.erano.com</groupId>
+			<artifactId>V1_21_R6</artifactId>
+			<version>1.0</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>me.erano.com</groupId>
+			<artifactId>V1_21_R5</artifactId>
+			<version>1.0</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>me.erano.com</groupId>
 			<artifactId>V1_21_R4</artifactId>
 			<version>1.0</version>
 			<scope>compile</scope>
@@ -37,6 +73,12 @@
 		<dependency>
 			<groupId>me.erano.com</groupId>
 			<artifactId>V1_21_R1</artifactId>
+			<version>1.0</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>me.erano.com</groupId>
+			<artifactId>V1_20_R4</artifactId>
 			<version>1.0</version>
 			<scope>compile</scope>
 		</dependency>
@@ -151,6 +193,36 @@
 		<dependency>
 			<groupId>me.erano.com</groupId>
 			<artifactId>V1_10_R1</artifactId>
+			<version>1.0</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>me.erano.com</groupId>
+			<artifactId>V1_9_R2</artifactId>
+			<version>1.0</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>me.erano.com</groupId>
+			<artifactId>V1_9_R1</artifactId>
+			<version>1.0</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>me.erano.com</groupId>
+			<artifactId>V1_8_R3</artifactId>
+			<version>1.0</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>me.erano.com</groupId>
+			<artifactId>V1_8_R2</artifactId>
+			<version>1.0</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>me.erano.com</groupId>
+			<artifactId>V1_8_R1</artifactId>
 			<version>1.0</version>
 			<scope>compile</scope>
 		</dependency>

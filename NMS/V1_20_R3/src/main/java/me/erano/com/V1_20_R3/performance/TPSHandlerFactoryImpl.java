@@ -12,6 +12,6 @@ public class TPSHandlerFactoryImpl implements TPSHandlerFactory {
 
     @Override
     public boolean supportsVersion(String version) {
-        return version.equals("1.20.3") || version.equals("1.20.4") || version.equals("1.20.5") || version.equals("1.20.6");
+        return version.equals("1.20.3") || version.equals("1.20.4");
     }
 }

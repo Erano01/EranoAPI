@@ -66,8 +66,8 @@ public class ParticleProviderImpl implements IParticleProvider {
 
     @Override
     public boolean supportsVersion(String version) {
-        //1.8 - 1.13 arasında desteklenen sürümler
-        if (version.startsWith("1.8") || version.startsWith("1.9") || version.startsWith("1.10")|| version.startsWith("1.11") || version.startsWith("1.12")) {
+        //1.10 - 1.12 arasında desteklenen sürümler (1.8 & 1.9 kendi modüllerinde: V1_8_R1 - V1_9_R2)
+        if (version.startsWith("1.10")|| version.startsWith("1.11") || version.startsWith("1.12")) {
             return true;
         }
         return false;
