@@ -22,6 +22,34 @@
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 	</properties>
 
+	<!-- The 26.x NMS modules compile against Spigot jars built with Java 25 (class file 69),
+	     which older javac versions can't read. Output still targets ${java.version}. -->
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<version>3.5.0</version>
+				<executions>
+					<execution>
+						<id>require-java-25</id>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<requireJavaVersion>
+									<version>[25,)</version>
+									<message>Maven must run on JDK 25+ (26.x Spigot jars are Java 25 class files). Set JAVA_HOME or IntelliJ's Maven runner JRE to JDK 25.</message>
+								</requireJavaVersion>
+							</rules>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
 	<!-- Repositories declared here are inherited by all modules -->
 	<repositories>
 

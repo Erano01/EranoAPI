@@ -52,7 +52,7 @@
     <dependencies>
         <dependency>
             <groupId>me.erano.com</groupId>
-            <artifactId>EranoAPI</artifactId>
+            <artifactId>eranoapi</artifactId>
             <version>1.0</version>
             <scope>provided</scope>
         </dependency>

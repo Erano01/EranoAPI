@@ -16,7 +16,7 @@
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
             <version>1.21.11-R0.2-SNAPSHOT</version>
-            <scope>compile</scope>
+            <scope>provided</scope>
             <classifier>remapped-mojang</classifier>
         </dependency>
     </dependencies>

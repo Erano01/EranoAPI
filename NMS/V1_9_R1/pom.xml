@@ -17,12 +17,12 @@
             <artifactId>spigot</artifactId>
             <version>1.9.2-R0.1-SNAPSHOT</version>
             <!-- Provided olmalı eğer localdan çalıştırcaksan, birde root pom.xml de github'dan çekiyor nms dependencyleri -->
-            <scope>compile</scope>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>me.erano.com</groupId>
-            <artifactId>EranoAPI</artifactId>
+            <artifactId>eranoapi</artifactId>
             <version>1.0</version>
             <scope>provided</scope>
         </dependency>
