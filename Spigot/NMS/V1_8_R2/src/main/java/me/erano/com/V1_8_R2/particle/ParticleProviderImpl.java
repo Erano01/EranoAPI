@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 
 import me.erano.com.api.particle.IParticleProvider;
 import me.erano.com.api.particle.ParticleEffect;
+import me.erano.com.common.VersionRange;
 
 /**
  * 1.8.3 (V1_8_R2) için Particle SPI implementasyonu
@@ -65,11 +66,8 @@ public class ParticleProviderImpl implements IParticleProvider {
     }
 
     @Override
-    public boolean supportsVersion(String version) {
-        if (version.equals("1.8.3")) {
-            return true;
-        }
-        return false;
+    public VersionRange supportedVersions() {
+        return VersionRange.only("1.8.3");
     }
 
     private net.minecraft.server.v1_8_R2.EnumParticle toNMSParticle(ParticleEffect effect) {

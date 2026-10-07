@@ -1,0 +1,99 @@
+// Based on the Forge 26.3-66.0.9 MDK.
+
+plugins {
+    id 'java'
+    id 'idea'
+    id 'eclipse'
+    id 'maven-publish'
+    id 'net.minecraftforge.gradle' version '[7.0.17,8)'
+}
+
+version = mod_version
+group = 'io.github.erano01'
+
+base {
+    archivesName = 'EranoAPI-Forge'
+}
+
+// Mojang ships Java 25 to end users in 26.1+, so the mod targets Java 25.
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
+
+java {
+    withSourcesJar()
+}
+
+minecraft {
+    runs {
+        configureEach {
+            workingDir = layout.projectDirectory.dir('run')
+
+            systemProperty 'eventbus.api.strictRuntimeChecks', 'true'
+        }
+
+        register('client')
+
+        register('server') {
+            args '--nogui'
+        }
+    }
+}
+
+repositories {
+    minecraft.mavenizer(it) // In Kotlin, it = this
+    maven fg.forgeMaven
+    maven fg.minecraftLibsMaven
+    mavenCentral()
+    // EranoAPI-Common
+    mavenLocal()
+}
+
+// EranoAPI-Common's classes are copied into the mod jar instead of being a separate dependency:
+// Forge loads mods as JPMS modules, and the same package coming from two jars is a split package.
+// Consumers therefore compile against this jar alone, so Common isn't in the published POM.
+configurations {
+    bundled
+    compileOnly.extendsFrom bundled
+}
+
+dependencies {
+    implementation minecraft.dependency("net.minecraftforge:forge:${minecraft_version}-${forge_version}")
+    annotationProcessor "net.minecraftforge:eventbus-validator:${eventbus_validator_version}"
+
+    bundled("io.github.erano01:EranoAPI-Common:${eranoapi_common_version}") { transitive = false }
+}
+
+// The injected service rather than the script's zipTree(): configuration cache compatible.
+def archives = services.get(ArchiveOperations)
+tasks.named('jar', Jar) {
+    from(configurations.bundled.elements.map { jars -> jars.collect { archives.zipTree(it) } }) {
+        exclude 'META-INF/MANIFEST.MF', 'META-INF/maven/**'
+    }
+}
+
+tasks.named('processResources', ProcessResources) {
+    def props = [
+            mod_version            : mod_version,
+            minecraft_version_range: minecraft_version_range,
+            forge_version_range    : forge_version_range,
+    ]
+    inputs.properties(props)
+    filesMatching('META-INF/mods.toml') { expand(props) }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    // Use the UTF-8 charset for Java compilation
+    // This is done by default in Java 18+, but this ensures it no matter the Java or Gradle version
+    options.encoding = 'UTF-8'
+}
+
+publishing {
+    publications {
+        create('mavenJava', MavenPublication) {
+            artifactId = 'EranoAPI-Forge'
+            from components.java
+        }
+    }
+}
+
+// Maven Central metadata, javadoc jar, signing and the staging repository (scripts/publish-central.sh).
+apply from: rootProject.file('../../scripts/central-publishing.gradle')

@@ -12,6 +12,8 @@
 	<!-- What plugin developers compile against: compileOnly / provided, the EranoAPI plugin
 	     (spigot/dist) provides it at runtime. -->
 	<artifactId>EranoAPI-Spigot</artifactId>
+	<name>EranoAPI-Spigot</name>
+	<description>Bukkit / Spigot API of EranoAPI; the EranoAPI plugin provides it at runtime.</description>
 	<packaging>jar</packaging>
 
 	<dependencies>

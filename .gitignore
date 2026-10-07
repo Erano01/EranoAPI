@@ -1,5 +1,7 @@
 # IntelliJ IDEA
 .idea/
+# IntelliJ regenerates module files (incl. the Minecraft Development facet) on Maven / Gradle import
+*.iml
 out/
 
 
@@ -31,3 +33,15 @@ test-output/
 
 # Local planning notes, not pushed to GitHub
 architecture-refactoring-plan.md
+
+# Gradle (Forge / Fabric version projects)
+**/.gradle/
+**/build/
+**/run/
+**/runs/
+
+# flatten-maven-plugin output (release profile)
+.flattened-pom.xml
+
+# Gradle wrapper jars must be committed (./gradlew needs them); *.jar above would ignore them
+!**/gradle/wrapper/gradle-wrapper.jar

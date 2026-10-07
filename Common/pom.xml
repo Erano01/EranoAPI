@@ -12,6 +12,27 @@
     <!-- Platform-agnostic contracts shared by Spigot, Forge and Fabric.
          Plain Java 8, no Minecraft / Bukkit / loader dependencies. -->
     <artifactId>EranoAPI-Common</artifactId>
+    <name>EranoAPI-Common</name>
+    <description>Platform-agnostic contracts of EranoAPI (version ranges, provider selection, networking).</description>
     <packaging>jar</packaging>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.13.4</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.3</version>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

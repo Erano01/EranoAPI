@@ -3,6 +3,7 @@ package me.erano.com.V1_14_R1.performance;
 
 import me.erano.com.api.performance.TPSHandler;
 import me.erano.com.api.performance.TPSHandlerFactory;
+import me.erano.com.common.VersionRange;
 
 public class TPSHandlerFactoryImpl implements TPSHandlerFactory {
     @Override
@@ -11,8 +12,7 @@ public class TPSHandlerFactoryImpl implements TPSHandlerFactory {
     }
 
     @Override
-    public boolean supportsVersion(String version) {
-        return version.equals("1.14") || version.equals("1.14.4") || version.equals("1.14.3")
-                || version.equals("1.14.2") || version.equals("1.14.1");
+    public VersionRange supportedVersions() {
+        return VersionRange.series("1.14");
     }
 }

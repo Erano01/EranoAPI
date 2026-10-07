@@ -1,0 +1,71 @@
+plugins {
+	// Remapping Loom: 1.21.11 ships obfuscated (26.x uses the non-remapping net.fabricmc.fabric-loom).
+	id 'fabric-loom' version "${loom_version}"
+	id 'maven-publish'
+}
+
+base {
+	archivesName = 'EranoAPI-Fabric'
+}
+
+repositories {
+	// EranoAPI-Common
+	mavenLocal()
+}
+
+loom {
+	splitEnvironmentSourceSets()
+
+	mods {
+		"eranoapi" {
+			sourceSet sourceSets.main
+			sourceSet sourceSets.client
+		}
+	}
+}
+
+dependencies {
+	// To change the versions see the gradle.properties file
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	// Same Mojang names as the 26.x projects, so the code stays identical.
+	mappings loom.officialMojangMappings()
+	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	// Platform-agnostic API: compiled against and nested into the mod jar (jar-in-jar).
+	api "io.github.erano01:EranoAPI-Common:${project.eranoapi_common_version}"
+	include "io.github.erano01:EranoAPI-Common:${project.eranoapi_common_version}"
+}
+
+processResources {
+	def version = project.version
+	inputs.property "version", version
+
+	filesMatching("fabric.mod.json") {
+		expand "version": version
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 21
+	it.options.encoding = 'UTF-8'
+}
+
+java {
+	withSourcesJar()
+
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
+}
+
+publishing {
+	publications {
+		create("mavenJava", MavenPublication) {
+			artifactId = 'EranoAPI-Fabric'
+			from components.java
+		}
+	}
+}
+
+// Maven Central metadata, javadoc jar, signing and the staging repository (scripts/publish-central.sh).
+apply from: rootProject.file('../../scripts/central-publishing.gradle')

@@ -1,4 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
+<project xmlns="http://maven.apache.org/POM/4.0.0" child.project.url.inherit.append.path="false"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
@@ -10,7 +10,28 @@
 	<packaging>pom</packaging>
 
 	<name>EranoAPI</name>
+	<description>Version-agnostic Minecraft API for Spigot, Forge and Fabric.</description>
 	<url>https://github.com/Erano01/EranoAPI</url>
+
+	<!-- Maven Central requires licenses, developers and scm in every published POM. -->
+	<licenses>
+		<license>
+			<name>MIT License</name>
+			<url>https://opensource.org/licenses/MIT</url>
+		</license>
+	</licenses>
+	<developers>
+		<developer>
+			<id>Erano01</id>
+			<name>Erano01</name>
+			<url>https://github.com/Erano01</url>
+		</developer>
+	</developers>
+	<scm child.scm.url.inherit.append.path="false" child.scm.connection.inherit.append.path="false" child.scm.developerConnection.inherit.append.path="false">
+		<url>https://github.com/Erano01/EranoAPI</url>
+		<connection>scm:git:https://github.com/Erano01/EranoAPI.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com/Erano01/EranoAPI.git</developerConnection>
+	</scm>
 
 	<modules>
 		<module>Common</module>
@@ -54,6 +75,89 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<profiles>
+		<!-- mvn -Prelease deploy: sources, javadoc and GPG signatures, which Maven Central requires.
+		     scripts/publish-central.sh deploys into a local staging folder and uploads that as one
+		     bundle together with the Forge / Fabric artifacts. -->
+		<profile>
+			<id>release</id>
+			<build>
+				<plugins>
+					<!-- Self-contained published POMs: inherited name, url, licenses, developers and scm are
+					     written into every POM, which Maven Central validates. -->
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>flatten-maven-plugin</artifactId>
+						<version>1.7.0</version>
+						<configuration>
+							<flattenMode>ossrh</flattenMode>
+							<updatePomFile>true</updatePomFile>
+						</configuration>
+						<executions>
+							<execution>
+								<id>flatten</id>
+								<phase>process-resources</phase>
+								<goals>
+									<goal>flatten</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-source-plugin</artifactId>
+						<version>3.3.1</version>
+						<executions>
+							<execution>
+								<id>attach-sources</id>
+								<goals>
+									<goal>jar-no-fork</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<version>3.11.2</version>
+						<configuration>
+							<doclint>none</doclint>
+							<quiet>true</quiet>
+						</configuration>
+						<executions>
+							<execution>
+								<id>attach-javadocs</id>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>3.2.7</version>
+						<configuration>
+							<!-- Bouncy Castle signer: the armored secret key comes from MAVEN_GPG_KEY and its
+							     passphrase from MAVEN_GPG_PASSPHRASE, no gpg binary or keyring needed. The
+							     Forge / Fabric builds read the same two variables. -->
+							<signer>bc</signer>
+						</configuration>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 
 	<!-- Repositories declared here are inherited by all modules.
 	     Spigot server jars (org.spigotmc:spigot) aren't published anywhere: build them into ~/.m2

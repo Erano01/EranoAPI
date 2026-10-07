@@ -1,0 +1,26 @@
+modLoader="javafml"
+loaderVersion="${forge_version_range}"
+license="MIT"
+
+[[mods]]
+modId="eranoapi"
+version="${mod_version}"
+displayName="EranoAPI"
+authors="Erano01"
+description='''Version-agnostic API shared by Spigot, Forge and Fabric.'''
+# A library: having it or not must never make a client and a server incompatible.
+displayTest="IGNORE_ALL_VERSION"
+
+[[dependencies.eranoapi]]
+    modId="forge"
+    mandatory=true
+    versionRange="${forge_version_range}"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.eranoapi]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="${minecraft_version_range}"
+    ordering="NONE"
+    side="BOTH"

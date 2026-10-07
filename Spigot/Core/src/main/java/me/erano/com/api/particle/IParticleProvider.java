@@ -4,14 +4,16 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
+import me.erano.com.common.VersionedService;
+
 /**
  * Parçacık sistemi için temel sağlayıcı arayüzü.
- * Her NMS sürümü bu arayüzü implement etmelidir.
+ * 1.9+ için Bukkit API ({@link BukkitParticleProvider}), 1.8 için NMS uygulamaları.
  */
-public interface IParticleProvider {
+public interface IParticleProvider extends VersionedService {
     /**
      * Belirtilen konumda bir parçacık oluşturur.
-     * 
+     *
      * @param world hedef dünya
      * @param location parçacığın oluşturulacağı konum
      * @param particle parçacık türü
@@ -23,23 +25,15 @@ public interface IParticleProvider {
      * @param data özel veri (blok veya item)
      * @param receivers parçacığı görecek oyuncular (null ise tüm oyuncular görür)
      */
-    void spawnParticle(World world, Location location, ParticleEffect particle, 
+    void spawnParticle(World world, Location location, ParticleEffect particle,
                       int count, double offsetX, double offsetY, double offsetZ,
                       double speed, Object data, Player... receivers);
 
     /**
      * Parçacık efektinin sunucu sürümünde desteklenip desteklenmediğini kontrol eder.
-     * 
+     *
      * @param particle kontrol edilecek parçacık türü
      * @return parçacık destekleniyorsa true
      */
     boolean isSupported(ParticleEffect particle);
-
-    /**
-     * Sürüm kontrolü yapar.
-     * 
-     * @param version kontrol edilecek sürüm (örn: "1.8", "1.12.2")
-     * @return bu sağlayıcı verilen sürümü destekliyorsa true
-     */
-    boolean supportsVersion(String version);
 }

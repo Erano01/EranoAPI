@@ -1,0 +1,60 @@
+// Applied by every Forge/V* and Fabric/V* project after its own `publishing` block:
+//   - Maven Central metadata on the `mavenJava` publication
+//   - a javadoc jar (Central requires sources + javadoc for every jar)
+//   - a `staging` file repository; scripts/publish-central.sh publishes everything there, signed,
+//     and uploads it to Central as one bundle together with the Maven artifacts
+//   - signing with the same key the Maven build uses: MAVEN_GPG_KEY (armored secret key) and
+//     MAVEN_GPG_PASSPHRASE, only when -Psign=true so local publishToMavenLocal stays unsigned
+
+apply plugin: 'signing'
+
+java {
+    withJavadocJar()
+}
+
+tasks.withType(Javadoc).configureEach {
+    options.encoding = 'UTF-8'
+    // Minecraft / loader types in signatures aren't documented; don't fail on missing references.
+    options.addStringOption('Xdoclint:none', '-quiet')
+}
+
+publishing {
+    publications.named('mavenJava', MavenPublication) {
+        pom {
+            name = artifactId
+            description = 'Version-agnostic Minecraft API for Spigot, Forge and Fabric.'
+            url = 'https://github.com/Erano01/EranoAPI'
+            licenses {
+                license {
+                    name = 'MIT License'
+                    url = 'https://opensource.org/licenses/MIT'
+                }
+            }
+            developers {
+                developer {
+                    id = 'Erano01'
+                    name = 'Erano01'
+                    url = 'https://github.com/Erano01'
+                }
+            }
+            scm {
+                url = 'https://github.com/Erano01/EranoAPI'
+                connection = 'scm:git:https://github.com/Erano01/EranoAPI.git'
+                developerConnection = 'scm:git:ssh://git@github.com/Erano01/EranoAPI.git'
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = 'staging'
+            url = uri(providers.gradleProperty('stagingDir').getOrElse(layout.buildDirectory.dir('staging').get().asFile.toURI().toString()))
+        }
+    }
+}
+
+if (providers.gradleProperty('sign').getOrElse('false') == 'true') {
+    signing {
+        useInMemoryPgpKeys(providers.environmentVariable('MAVEN_GPG_KEY').get(), providers.environmentVariable('MAVEN_GPG_PASSPHRASE').getOrElse(''))
+        sign publishing.publications.mavenJava
+    }
+}

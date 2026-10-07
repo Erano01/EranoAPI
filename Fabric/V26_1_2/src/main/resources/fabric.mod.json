@@ -1,0 +1,21 @@
+{
+	"schemaVersion": 1,
+	"id": "eranoapi",
+	"version": "${version}",
+	"name": "EranoAPI",
+	"description": "Version-agnostic API shared by Spigot, Forge and Fabric.",
+	"authors": [
+		"Erano01"
+	],
+	"contact": {
+		"sources": "https://github.com/Erano01/EranoAPI"
+	},
+	"license": "MIT",
+	"environment": "*",
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~26.1",
+		"java": ">=25",
+		"fabric-networking-api-v1": "*"
+	}
+}

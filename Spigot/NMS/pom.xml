@@ -14,6 +14,9 @@
     <!-- Internal: the version modules are shaded into spigot/dist and never published on their own. -->
     <properties>
         <maven.deploy.skip>true</maven.deploy.skip>
+        <maven.source.skip>true</maven.source.skip>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
+        <gpg.skip>true</gpg.skip>
     </properties>
 
     <!-- One module per vX_Y_RZ revision, compiled against the newest Minecraft version of that

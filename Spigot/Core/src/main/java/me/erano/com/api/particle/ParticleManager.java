@@ -1,16 +1,16 @@
 
 package me.erano.com.api.particle;
 
-import java.util.ServiceLoader;
-
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
+import me.erano.com.api.ServerVersion;
+import me.erano.com.common.VersionedServices;
+
 /**
  * ParticleManager facade & singleton.
- * SPI ile uygun NMS implementasyonunu seçer.
+ * SPI ile uygun implementasyonu seçer: 1.9+ Bukkit API, 1.8 NMS.
  * Design Patterns: Facade, Singleton, Service Provider Interface
  */
 public class ParticleManager {
@@ -18,19 +18,8 @@ public class ParticleManager {
     private final IParticleProvider provider;
 
     private ParticleManager() {
-        ServiceLoader<IParticleProvider> loader = ServiceLoader.load(IParticleProvider.class);
-        String version = Bukkit.getServer().getBukkitVersion().split("-")[0];
-        IParticleProvider found = null;
-        for (IParticleProvider prov : loader) {
-            if (prov.supportsVersion(version)) {
-                found = prov;
-                break;
-            }
-        }
-        if (found == null) {
-            throw new IllegalStateException("No particle provider found for version " + version);
-        }
-        this.provider = found;
+        // The plugin's own class loader: the thread context class loader can't see the NMS modules.
+        this.provider = VersionedServices.select(IParticleProvider.class, ParticleManager.class.getClassLoader(), ServerVersion.current());
     }
 
     public static synchronized ParticleManager getInstance() {

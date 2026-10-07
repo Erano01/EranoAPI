@@ -16,7 +16,9 @@
 #   BUILDTOOLS_DIR=...   BuildTools directory (default: ~/MinecraftWorkspace/Buildtools)
 #   JAVA8_HOME, JAVA11_HOME, JAVA17_HOME, JAVA21_HOME, JAVA25_HOME
 #                        JDK to use for that Java version (default: auto-detected)
-#   FORCE=1              rebuild even if the jar already exists
+#   FORCE=1              rebuild even if the jar already exists (in BUILDTOOLS_DIR or ~/.m2)
+#   MAVEN_REPO=...       local Maven repository (default: ~/.m2/repository)
+#   CLEAN_AFTER_BUILD=1  delete BuildTools' work/ folder and the output jar after each build (CI disk space)
 
 set -uo pipefail
 
@@ -64,6 +66,7 @@ BUILDTOOLS_URL="https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBu
 
 BUILDTOOLS_DIR="${BUILDTOOLS_DIR:-$HOME/MinecraftWorkspace/Buildtools}"
 LOG_DIR="$BUILDTOOLS_DIR/logs"
+M2_SPIGOT="${MAVEN_REPO:-$HOME/.m2/repository}/org/spigotmc/spigot"
 
 log()  { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m!!\033[0m %s\n' "$*" >&2; }
@@ -116,11 +119,23 @@ needs_remapped() {
     [ "$major" = "1" ] && [ "$minor" -ge 17 ]
 }
 
+# Whether ~/.m2 already has what the NMS module needs (CI caches ~/.m2, not the BuildTools folder).
+# 1.21.11 is R0.2, hence the R0.* glob.
+installed_in_m2() {
+    local rev=$1 dir
+    for dir in "$M2_SPIGOT/$rev"-R0.*-SNAPSHOT; do
+        [ -f "$dir/spigot-$(basename "$dir").jar" ] || continue
+        needs_remapped "$rev" && [ ! -f "$dir/spigot-$(basename "$dir")-remapped-mojang.jar" ] && continue
+        return 0
+    done
+    return 1
+}
+
 build_version() {
     local rev=$1 revision=$2 java=$3 jdk
     local jar="$BUILDTOOLS_DIR/spigot-$rev.jar" logfile="$LOG_DIR/$rev.log"
 
-    if [ -f "$jar" ] && [ "${FORCE:-0}" != "1" ]; then
+    if { [ -f "$jar" ] || installed_in_m2 "$rev"; } && [ "${FORCE:-0}" != "1" ]; then
         log "$rev ($revision) already built, skipping"
         SKIPPED+=("$rev"); return 0
     fi
@@ -136,6 +151,10 @@ build_version() {
     log "$rev ($revision) with Java $java -> log: $logfile"
     if (cd "$BUILDTOOLS_DIR" && "$(java_bin "$jdk")" -jar BuildTools.jar "${args[@]}") > "$logfile" 2>&1; then
         BUILT+=("$rev")
+        # Everything the NMS modules need is in ~/.m2 now; work/ alone grows to several GB over 35 builds.
+        if [ "${CLEAN_AFTER_BUILD:-0}" = "1" ]; then
+            rm -rf "$BUILDTOOLS_DIR/work" "$jar"
+        fi
     else
         warn "$rev failed, see $logfile"
         FAILED+=("$rev (build error)")

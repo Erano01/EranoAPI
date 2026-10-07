@@ -1,0 +1,6 @@
+me.erano.com.common.VersionedServicesTest$Broken
+me.erano.com.common.VersionedServicesTest$Legacy
+me.erano.com.common.VersionedServicesTest$Modern
+me.erano.com.common.VersionedServicesTest$Latest
+me.erano.com.common.VersionedServicesTest$Preferred
+me.erano.com.common.VersionedServicesTest$Throwing
