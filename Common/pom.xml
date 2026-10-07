@@ -6,7 +6,7 @@
     <parent>
         <groupId>io.github.erano01</groupId>
         <artifactId>EranoAPI</artifactId>
-        <version>1.0.0-alpha.1</version>
+        <version>1.0.0-alpha.2</version>
     </parent>
 
     <!-- Platform-agnostic contracts shared by Spigot, Forge and Fabric.

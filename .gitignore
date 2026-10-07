@@ -45,3 +45,7 @@ architecture-refactoring-plan.md
 
 # Gradle wrapper jars must be committed (./gradlew needs them); *.jar above would ignore them
 !**/gradle/wrapper/gradle-wrapper.jar
+
+# Local Maven Central credentials (never commit)
+Maven.settings.xml
+settings.xml

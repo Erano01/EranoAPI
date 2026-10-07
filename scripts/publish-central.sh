@@ -66,6 +66,10 @@ for dir in "$ROOT"/Forge/V* "$ROOT"/Fabric/V*; do
         -PstagingDir="file://$STAGING" -Psign=true --console=plain -q) || die "$project failed"
 done
 
+# Central rejects released POMs that reference -SNAPSHOT versions; fail here instead of after the upload.
+snapshots=$(grep -rl --include='*.pom' -- '-SNAPSHOT' "$STAGING" || true)
+[ -z "$snapshots" ] || die "POMs referencing -SNAPSHOT versions (Maven Central rejects them): ${snapshots//$'\n'/ }"
+
 # 3. Bundle: Central computes its own maven-metadata.xml, so leave those out.
 find "$STAGING" -name 'maven-metadata.xml*' -delete
 (cd "$STAGING" && zip -qr "$BUNDLE" .) || die "Could not create $BUNDLE"

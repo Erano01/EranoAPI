@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>io.github.erano01</groupId>
 		<artifactId>EranoAPI</artifactId>
-		<version>1.0.0-alpha.1</version>
+		<version>1.0.0-alpha.2</version>
 		<relativePath>../../pom.xml</relativePath>
 	</parent>
 
@@ -22,15 +22,32 @@
 			<artifactId>EranoAPI-Common</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-
-		<!-- latest spigot-api needed -->
-		<dependency>
-			<groupId>org.spigotmc</groupId>
-			<artifactId>spigot-api</artifactId>
-			<version>1.21.6-R0.1-SNAPSHOT</version>
-			<scope>provided</scope>
-		</dependency>
 	</dependencies>
+
+	<profiles>
+		<!-- spigot-api only exists as -SNAPSHOT, and Maven Central rejects released POMs that depend on
+		     snapshots. Declared in a property-activated profile, which is always active (the property is
+		     never set) so compiling works, while flatten-maven-plugin leaves such dependencies out of the
+		     published POM (embedBuildProfileDependencies=false). It's provided anyway: plugin developers
+		     bring their own spigot-api and the server supplies it at runtime. -->
+		<profile>
+			<id>spigot-api</id>
+			<activation>
+				<property>
+					<name>!eranoapi.withoutSpigotApi</name>
+				</property>
+			</activation>
+			<dependencies>
+				<!-- latest spigot-api needed -->
+				<dependency>
+					<groupId>org.spigotmc</groupId>
+					<artifactId>spigot-api</artifactId>
+					<version>1.21.6-R0.1-SNAPSHOT</version>
+					<scope>provided</scope>
+				</dependency>
+			</dependencies>
+		</profile>
+	</profiles>
 
 	<build>
 		<!-- plugin.yml takes its version from the POM (scripts/set-version.sh). -->

@@ -6,7 +6,7 @@
 	<!-- io.github.erano01: Maven Central namespace verified through the GitHub account. -->
 	<groupId>io.github.erano01</groupId>
 	<artifactId>EranoAPI</artifactId>
-	<version>1.0.0-alpha.1</version>
+	<version>1.0.0-alpha.2</version>
 	<packaging>pom</packaging>
 
 	<name>EranoAPI</name>
@@ -92,6 +92,11 @@
 						<version>1.7.0</version>
 						<configuration>
 							<flattenMode>ossrh</flattenMode>
+							<!-- Profiles only matter to this build, and Spigot/Core keeps the -SNAPSHOT spigot-api in one,
+							     which Maven Central refuses. -->
+							<pomElements>
+								<profiles>remove</profiles>
+							</pomElements>
 							<updatePomFile>true</updatePomFile>
 						</configuration>
 						<executions>
