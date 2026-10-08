@@ -6,7 +6,7 @@
 	<!-- io.github.erano01: Maven Central namespace verified through the GitHub account. -->
 	<groupId>io.github.erano01</groupId>
 	<artifactId>EranoAPI</artifactId>
-	<version>1.0.0-alpha.2</version>
+	<version>1.0.0-alpha.3-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>EranoAPI</name>
