@@ -1,5 +1,6 @@
 package me.erano.com.api;
 
+import me.erano.com.api.display.DisplayDemoCommand;
 import me.erano.com.api.menu.PianoCommand;
 import me.erano.com.api.menu.MenuListener;
 import me.erano.com.api.menu.MenuDispatcher;
@@ -19,10 +20,12 @@ public class CorePlugin extends JavaPlugin{
         getLogger().info("Minecraft " + version + ": using " + tpsHandlerFactory.getClass().getName());
 
         tpsHandler = tpsHandlerFactory.createTPSHandler();
+        EranoServices.enable(this);
         // Example: Command to show TPS
         getCommand("showTPS").setExecutor(new ShowTPSCommand(this));
-        // Example: Task to send TPS to all players as actionbar (only requires NMS on 1.8)
-        getServer().getScheduler().runTaskTimer(this, new ActionBarTask(this), 0, 20);
+        // Example: new ActionBarTask(this) sends the TPS to every player's action bar. Not scheduled: it would
+        // overwrite the action bar of every plugin that depends on EranoAPI.
+        getCommand("eranodemo").setExecutor(new DisplayDemoCommand());
 
         //menu stuff
         MenuDispatcher menuDispatcher = new MenuDispatcher();
@@ -31,6 +34,11 @@ public class CorePlugin extends JavaPlugin{
         Bukkit.getPluginManager().registerEvents(menuListener, this);
         getCommand("piano").setExecutor(new PianoCommand(menuDispatcher));
 
+    }
+
+    @Override
+    public void onDisable() {
+        EranoServices.disable();
     }
 
     public TPSHandler getTPSHandler() {

@@ -19,6 +19,18 @@ class MinecraftVersionTest {
     void ignoresBukkitVersionSuffix() {
         assertEquals(new MinecraftVersion(1, 21, 11), MinecraftVersion.parse("1.21.11-R0.2-SNAPSHOT"));
         assertEquals(new MinecraftVersion(26, 1, 2), MinecraftVersion.parse("26.1.2-R0.1-SNAPSHOT"));
+        assertEquals(new MinecraftVersion(26, 3, 0), MinecraftVersion.parse("26.3-R0.1-SNAPSHOT"));
+        assertEquals(new MinecraftVersion(26, 3, 0), MinecraftVersion.parse("26.3"));
+    }
+
+    @Test
+    void ordersYearBasedAfterLegacy() {
+        MinecraftVersion v26 = MinecraftVersion.parse("26.3-R0.1-SNAPSHOT");
+        MinecraftVersion v121 = MinecraftVersion.parse("1.21.11-R0.2-SNAPSHOT");
+        MinecraftVersion v18 = MinecraftVersion.parse("1.8.8-R0.1-SNAPSHOT");
+        assertTrue(v26.compareTo(v121) > 0);
+        assertTrue(v121.compareTo(v18) > 0);
+        assertTrue(v26.isAtLeast(v18));
     }
 
     @Test

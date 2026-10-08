@@ -10,7 +10,8 @@ public interface TPSHandler {
 	// Even in 1.20 API, you need NMS for this
     double[] getTPS();
 
-    // This method only needs to be overridden in versions that don't support this through API (1.8)
+    /** @deprecated use {@link me.erano.com.api.EranoServices#messages()}, which works on every version */
+    @Deprecated
     default void sendActionBar(Player player, String message) {
         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(message));
     }

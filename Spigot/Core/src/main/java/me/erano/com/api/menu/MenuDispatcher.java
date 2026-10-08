@@ -3,6 +3,7 @@ package me.erano.com.api.menu;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.inventory.Inventory;
 
@@ -42,6 +43,13 @@ public class MenuDispatcher {
         InventoryHandler handler = this.activeInventories.get(event.getInventory());
         if (handler != null) {
             handler.onClick(event);
+        }
+    }
+
+    public void handleDrag(InventoryDragEvent event) {
+        InventoryHandler handler = this.activeInventories.get(event.getInventory());
+        if (handler != null) {
+            handler.onDrag(event);
         }
     }
 

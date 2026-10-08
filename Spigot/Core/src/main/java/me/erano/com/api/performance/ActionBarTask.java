@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import me.erano.com.api.CorePlugin;
+import me.erano.com.api.EranoServices;
 
 public class ActionBarTask implements Runnable{
 
@@ -16,7 +17,7 @@ public class ActionBarTask implements Runnable{
     @Override
     public void run() {
         for(Player player : Bukkit.getOnlinePlayers()) {
-            plugin.getTPSHandler().sendActionBar(player, "Current TPS: " + ShowTPSCommand.formatTps(plugin.getTPSHandler().getTPS()[0]));
+            EranoServices.messages().sendActionBar(player, "Current TPS: " + ShowTPSCommand.formatTps(plugin.getTPSHandler().getTPS()[0]));
         }
     }
 }

@@ -9,3 +9,10 @@ commands:
   piano:
     description: open piano
     usage: /piano
+  eranodemo:
+    description: Try the action bar, title and hologram services
+    usage: /eranodemo <actionbar|title|holo|unholo>
+    permission: eranoapi.demo
+permissions:
+  eranoapi.demo:
+    default: op
