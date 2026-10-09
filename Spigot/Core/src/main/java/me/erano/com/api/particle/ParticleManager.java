@@ -12,7 +12,10 @@ import me.erano.com.common.VersionedServices;
  * ParticleManager facade & singleton.
  * SPI ile uygun implementasyonu seçer: 1.9+ Bukkit API, 1.8 NMS.
  * Design Patterns: Facade, Singleton, Service Provider Interface
+ *
+ * @deprecated {@link EranoParticle}: every particle of today by its newest name, 1.8 included.
  */
+@Deprecated
 public class ParticleManager {
     private static ParticleManager instance;
     private final IParticleProvider provider;

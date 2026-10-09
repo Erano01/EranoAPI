@@ -3,7 +3,10 @@ package me.erano.com.api.particle;
 /**
  * Minecraft'taki tüm parçacık türlerini temsil eden enum.
  * Her sürümde bulunmayan parçacıklar için version bilgisi içerir.
+ *
+ * @deprecated {@link EranoParticle}: every particle of today by its newest name, 1.8 included.
  */
+@Deprecated
 public enum ParticleEffect {
     // 1.8'den beri var olan temel parçacıklar
     EXPLOSION_NORMAL,

@@ -8,6 +8,8 @@ Version-agnostic Minecraft API for Spigot, Forge and Fabric.
   your mod's code stays the same across versions.
 - Open source under the MIT license
 
+NOTE: Read Dependencies.md before start doing anything in minecraft development.
+
 ## Modules
 
 ```
@@ -65,13 +67,30 @@ Forge (Forge loads mods as JPMS modules and the same package from two jars fails
 `EranoMaterial`: every material of the newest Minecraft by its newest name, on every server from 1.8 to 26.x. On
 1.13+ the server's `Material` of that name (or of its older name: `SHORT_GRASS` is `GRASS` on 1.20.2); on 1.8 -
 1.12 the old material with its data value (`RED_WOOL` is `WOOL:14`). Generated from Spigot's own data, see
-[docs/Material.md](docs/Material.md).
+[docs/Material.md](docs/Material.md). The other APIs of this kind (sounds, enchantments, potion effects, particles,
+entity types, game rules ...) and their order: [docs/Versioned-APIs.md](docs/Versioned-APIs.md).
 
 ```java
 ItemStack wool = EranoMaterial.RED_WOOL.parseItem(16);          // WOOL:14 on 1.8, RED_WOOL on 26.x
 EranoMaterial.match("WOOD_SWORD").ifPresent(...);               // WOODEN_SWORD; "minecraft:red_wool", "WOOL:14", "A|B"
 EranoMaterial.of(player.getItemInHand());                       // what it is, data value included on 1.8
 EranoMaterial.GRANITE.setType(block);                           // STONE:1 on 1.8
+```
+
+### Sounds, particles, potions, enchantments
+
+The same idea for the other names that changed between versions, each by its newest name on every server from 1.8:
+`EranoSound` (renamed in 1.9 and 1.13, matched by the files Mojang plays), `EranoParticle` (renamed in 1.20.5; on
+1.8, which has no particle API, EranoAPI sends the packet) and `EranoEffect`, `EranoPotionEffect`, `EranoPotionType`
+(the item too: a data value on 1.8, `PotionData` up to 1.20.1), `EranoEnchantment`. Reports: [docs/Sound.md](docs/Sound.md),
+[docs/Particle.md](docs/Particle.md), [docs/Potion.md](docs/Potion.md), [docs/Enchantment.md](docs/Enchantment.md).
+
+```java
+EranoSound.ENTITY_PLAYER_LEVELUP.play(player, 1f, 1f);                     // LEVEL_UP on 1.8
+EranoParticle.DUST.spawn(location, 1, 0, 0, 0, 0, Color.AQUA);              // REDSTONE packet on 1.8
+EranoPotionEffect.STRENGTH.apply(player, 200, 1);                           // INCREASE_DAMAGE up to 1.20.4
+EranoEnchantment.SHARPNESS.enchant(sword, 2);                               // DAMAGE_ALL up to 1.20.4
+ItemStack potion = EranoPotionType.LONG_SWIFTNESS.parseItem(EranoPotionType.Form.SPLASH, 1);
 ```
 
 ### Cluster
@@ -98,7 +117,7 @@ mvn clean install                       # -> Spigot/Dist/target/EranoAPI.jar
 ```
 
 On Windows use `scripts\build-spigot-jars.bat`. JDK requirements per Minecraft version are listed in
-[dependencies.md](dependencies.md).
+[dependencies.md](Dependenceis.md).
 
 ## Releasing
 

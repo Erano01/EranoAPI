@@ -32,8 +32,8 @@ test-output/
 *.jar
 
 # Local planning notes, not pushed to GitHub
-architecture-refactoring-plan.md
-todo.md
+docs/architecture-refactoring-plan.md
+docs/todo.md
 
 # Gradle (Forge / Fabric version projects)
 **/.gradle/
@@ -50,3 +50,7 @@ todo.md
 # Local Maven Central credentials (never commit)
 Maven.settings.xml
 settings.xml
+
+# scripts/registry-report: downloaded and dumped data
+scripts/registry-report/work/
+__pycache__/

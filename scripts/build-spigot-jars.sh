@@ -4,7 +4,7 @@
 # installs them into the local Maven repository (~/.m2), so every NMS module can compile.
 # Windows counterpart: build-spigot-jars.bat (same version table).
 #
-# Rule (see dependencies.md): one build per vX_Y_RZ revision; if a revision covers several
+# Rule (see Dependenceis.md): one build per vX_Y_RZ revision; if a revision covers several
 # Minecraft versions, the newest of them is built. 26.x has no revisions, so every
 # version is built.
 #
@@ -23,7 +23,7 @@
 set -uo pipefail
 
 # "<minecraft version>  <revision>  <java>"
-# revisions: spigotmc.org wiki "Spigot NMS and Minecraft Versions", java: dependencies.md
+# revisions: spigotmc.org wiki "Spigot NMS and Minecraft Versions", java: Dependenceis.md
 VERSIONS=(
     "1.8      v1_8_R1   8"
     "1.8.3    v1_8_R2   8"

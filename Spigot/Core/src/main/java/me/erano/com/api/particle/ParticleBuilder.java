@@ -6,7 +6,10 @@ import org.bukkit.entity.Player;
 
 /**
  * Builder sınıfı ile parçacık efekti yapılandırması
+ *
+ * @deprecated {@link EranoParticle}: every particle of today by its newest name, 1.8 included.
  */
+@Deprecated
 public class ParticleBuilder {
     private final World world;
     private final Location location;
