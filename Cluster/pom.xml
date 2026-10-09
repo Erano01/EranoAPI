@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.github.erano01</groupId>
+        <artifactId>EranoAPI</artifactId>
+        <version>1.0.0-alpha.3-SNAPSHOT</version>
+    </parent>
+
+    <!-- What the servers of a minigame network know about each other, over MySQL / MariaDB or Redis.
+         Plain Java 8, no Minecraft / Bukkit / loader dependencies, so any platform's server or hub can use it.
+         Not part of the EranoAPI plugin (Dist): plugins bundle it (shade and relocate) with its drivers. -->
+    <artifactId>EranoAPI-Cluster</artifactId>
+    <name>EranoAPI-Cluster</name>
+    <description>Shared state of a minigame network: every server's arenas and the players on their way to one, over
+        MySQL / MariaDB or Redis.</description>
+    <packaging>jar</packaging>
+
+    <properties>
+        <!-- HikariCP 4.0.x is the last line for Java 8; Jedis 5.x runs on Java 8. -->
+        <hikaricp.version>4.0.3</hikaricp.version>
+        <mariadb.version>3.5.3</mariadb.version>
+        <jedis.version>5.2.0</jedis.version>
+        <slf4j.version>1.7.36</slf4j.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>${hikaricp.version}</version>
+            <exclusions>
+                <exclusion><groupId>org.slf4j</groupId><artifactId>*</artifactId></exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.mariadb.jdbc</groupId>
+            <artifactId>mariadb-java-client</artifactId>
+            <version>${mariadb.version}</version>
+            <exclusions>
+                <exclusion><groupId>com.github.waffle</groupId><artifactId>*</artifactId></exclusion>
+                <exclusion><groupId>net.java.dev.jna</groupId><artifactId>*</artifactId></exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>${jedis.version}</version>
+            <exclusions>
+                <exclusion><groupId>org.slf4j</groupId><artifactId>*</artifactId></exclusion>
+                <!-- Gson's compile-time annotations; nothing reads them at runtime. -->
+                <exclusion><groupId>com.google.errorprone</groupId><artifactId>*</artifactId></exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.13.4</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- An in-memory database in MySQL mode for the MySQL backend's tests. -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>2.2.224</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-nop</artifactId>
+            <version>${slf4j.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.3</version>
+                <!-- The Redis tests run only against a real server: ERANOAPI_CLUSTER_TEST_REDIS=host:port. -->
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

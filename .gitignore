@@ -33,6 +33,7 @@ test-output/
 
 # Local planning notes, not pushed to GitHub
 architecture-refactoring-plan.md
+todo.md
 
 # Gradle (Forge / Fabric version projects)
 **/.gradle/

@@ -35,6 +35,7 @@
 
 	<modules>
 		<module>Common</module>
+		<module>Cluster</module>
 		<module>Spigot/Core</module>
 		<module>Spigot/NMS</module>
 		<module>Spigot/Dist</module>

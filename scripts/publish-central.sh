@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Publishes EranoAPI to Maven Central as ONE deployment:
-#   - Maven:  EranoAPI (parent pom), EranoAPI-Common, EranoAPI-Spigot
+#   - Maven:  EranoAPI (parent pom), EranoAPI-Common, EranoAPI-Cluster, EranoAPI-Spigot
 #   - Gradle: EranoAPI-Forge / EranoAPI-Fabric of every Forge/V* and Fabric/V* project
 # Everything is built with sources + javadoc, signed, deployed into build/central/staging, zipped and
 # uploaded through the Central Portal publisher API.
@@ -52,9 +52,9 @@ rm -rf "$WORK"
 mkdir -p "$STAGING"
 
 # 1. Maven. deploy also installs, so EranoAPI-Common lands in ~/.m2 for the Gradle builds below.
-#    Only Common and Core (+ the parent pom): the NMS modules would need every Spigot jar and are internal.
-log "Maven: EranoAPI, EranoAPI-Common, EranoAPI-Spigot"
-(cd "$ROOT" && mvn -B -q -Prelease -pl Common,Spigot/Core -am deploy \
+#    Only Common, Cluster and Core (+ the parent pom): the NMS modules would need every Spigot jar and are internal.
+log "Maven: EranoAPI, EranoAPI-Common, EranoAPI-Cluster, EranoAPI-Spigot"
+(cd "$ROOT" && mvn -B -q -Prelease -pl Common,Cluster,Spigot/Core -am deploy \
     -DaltDeploymentRepository="staging::file://$STAGING") || die "Maven release build failed"
 
 # 2. Gradle: every Forge / Fabric version project.

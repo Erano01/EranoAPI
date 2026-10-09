@@ -13,6 +13,7 @@ Version-agnostic Minecraft API for Spigot, Forge and Fabric.
 ```
 EranoAPI/
 ├── Common/        EranoAPI-Common   platform-agnostic contracts (plain Java 8)
+├── Cluster/       EranoAPI-Cluster  a minigame network's shared state over MySQL or Redis (plain Java 8)
 ├── Spigot/
 │   ├── Core/      EranoAPI-Spigot   Bukkit-side API, what plugin developers compile against
 │   ├── NMS/       one module per NMS revision (V1_8_R1 … V1_21_R7, V26_1 … V26_3), internal
@@ -58,6 +59,17 @@ implementation("io.github.erano01:EranoAPI-Forge:1.0.0-alpha.2+26.3")
 
 EranoAPI-Forge already contains EranoAPI-Common's classes; don't add EranoAPI-Common separately on
 Forge (Forge loads mods as JPMS modules and the same package from two jars fails to load).
+
+### Cluster
+
+What the servers of a minigame network know about each other: every server's arenas and the players on
+their way to one, over MySQL / MariaDB or Redis. Plain Java, for any platform's game server, hub or proxy.
+It isn't part of the EranoAPI plugin: bundle it (shade and relocate `me.erano.com.api.cluster`, Jedis,
+HikariCP, the MariaDB driver) into your plugin. See [Cluster/README.md](Cluster/README.md).
+
+```kotlin
+implementation("io.github.erano01:EranoAPI-Cluster:1.0.0-alpha.3")
+```
 
 ## Building
 
