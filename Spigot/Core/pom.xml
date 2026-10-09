@@ -38,11 +38,12 @@
 				</property>
 			</activation>
 			<dependencies>
-				<!-- latest spigot-api needed -->
+				<!-- Always the newest Minecraft's spigot-api: Core reaches newer API than the oldest supported
+				     server, behind version checks (VersionedServices). Raise it with every new Minecraft. -->
 				<dependency>
 					<groupId>org.spigotmc</groupId>
 					<artifactId>spigot-api</artifactId>
-					<version>1.21.6-R0.1-SNAPSHOT</version>
+					<version>26.3-R0.1-SNAPSHOT</version>
 					<scope>provided</scope>
 				</dependency>
 			</dependencies>

@@ -5,6 +5,10 @@ import java.util.logging.Level;
 
 import org.bukkit.plugin.Plugin;
 
+import me.erano.com.api.bossbar.BossBarService;
+import me.erano.com.api.bossbar.BossBarServiceProvider;
+import me.erano.com.api.bossbar.PacketBossBarService;
+import me.erano.com.api.bossbar.UnsupportedBossBarService;
 import me.erano.com.api.display.BukkitMessageService;
 import me.erano.com.api.display.MessageService;
 import me.erano.com.api.display.MessageServiceProvider;
@@ -24,6 +28,7 @@ public final class EranoServices {
 
     private static MessageService messages;
     private static HologramService holograms;
+    private static BossBarService bossBars;
 
     private EranoServices() {
     }
@@ -31,6 +36,11 @@ public final class EranoServices {
     /** Action bar and titles. */
     public static MessageService messages() {
         return require(messages);
+    }
+
+    /** Bars at the top of the screen, 1.8 included. */
+    public static BossBarService bossBars() {
+        return require(bossBars);
     }
 
     /** Client side text markers. */
@@ -41,14 +51,19 @@ public final class EranoServices {
     static void enable(Plugin plugin) {
         messages = select(plugin, MessageServiceProvider.class, MessageServiceProvider::create, new BukkitMessageService());
         holograms = select(plugin, HologramServiceProvider.class, provider -> provider.create(plugin), new UnsupportedHologramService());
+        bossBars = select(plugin, BossBarServiceProvider.class, provider -> provider.create(plugin), new UnsupportedBossBarService());
     }
 
     static void disable() {
         if (holograms instanceof AbstractHologramService) {
             ((AbstractHologramService) holograms).shutdown();
         }
+        if (bossBars instanceof PacketBossBarService) {
+            ((PacketBossBarService) bossBars).shutdown();
+        }
         messages = null;
         holograms = null;
+        bossBars = null;
     }
 
     private static <P extends VersionedService, S> S select(Plugin plugin, Class<P> type, Function<P, S> create, S fallback) {
