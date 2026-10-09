@@ -8,6 +8,11 @@ Version-agnostic Minecraft API for Spigot, Forge and Fabric.
   your mod's code stays the same across versions.
 - Open source under the MIT license
 
+| | |
+|---|---|
+| **Download** (server owners) | [SpigotMC](https://www.spigotmc.org/resources/eranoapi.139499/) · [GitHub Releases](https://github.com/Erano01/EranoAPI/releases) |
+| **Maven Central** (developers) | [io.github.erano01:EranoAPI-Spigot](https://central.sonatype.com/artifact/io.github.erano01/EranoAPI-Spigot) |
+
 NOTE: Read Dependencies.md before start doing anything in minecraft development.
 
 Features, architecture and roadmap: [docs/](docs/README.md).
