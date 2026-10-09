@@ -10,6 +10,8 @@ Version-agnostic Minecraft API for Spigot, Forge and Fabric.
 
 NOTE: Read Dependencies.md before start doing anything in minecraft development.
 
+Features, architecture and roadmap: [docs/](docs/README.md).
+
 ## Modules
 
 ```

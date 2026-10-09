@@ -76,7 +76,7 @@ def sound_rows():
         rows.append(dict(name=name, hist={v: [h[v][0]] for v in h}, key=skeys[vs[-1]][name], id=None, notes={}))
     by_name = {r['name']: r for r in rows}
     for name, v, old_key, new_key, j in fuzzy:
-        by_name[name]['notes']['fuzzy'] = '%s: `%s` → `%s` (dosyaların %d%%\'i aynı)' % (REV[v][0], new_key, old_key, round(j * 100))
+        by_name[name]['notes']['fuzzy'] = '%s: `%s` → `%s` (%d%% of the files shared)' % (REV[v][0], new_key, old_key, round(j * 100))
     # Re-recorded in 1.9: no file in common, but 1.8's game played these for the same thing.
     for name, old in SOUND_BY_MEANING.items():
         r = by_name[name]
@@ -165,22 +165,21 @@ HEAD = """# %s
 
 %s
 
-Döküm her NMS revizyonunun Spigot API'sinin bytecode'undan (sınıflar yüklenmeden; registry tabanlı değerler de),
-isim değişiklikleri CraftBukkit'in kendi tablolarından (`legacy/FieldRename.java`); hepsi
-`scripts/registry-report/run.sh` ile yeniden üretilir. Revizyonlar ve yöntem: [Material.md](Material.md),
-[Versioned-APIs.md](Versioned-APIs.md).
+The tables below are what it is generated from (`scripts/registry-report/run.sh`): every NMS revision's Spigot API,
+read from its bytecode (no class loaded, so registry-backed values too), and CraftBukkit's own rename tables
+(`legacy/FieldRename.java`). See also [Versioned-APIs.md](Versioned-APIs.md).
 """
 
 
 def names(xs, limit=None):
     xs = sorted(xs)
     if limit and len(xs) > limit:
-        return '%d değer (aşağıdaki tabloda)' % len(xs)
+        return '%d values (table below)' % len(xs)
     return ', '.join('`%s`' % x for x in xs)
 
 
 def changes_table(L, vs, names_in, exclude=lambda n: False, limit=None):
-    L.append('| Geçiş | Eklenen | Kaldırılan |\n|---|---|---|')
+    L.append('| Change | Added | Removed |\n|---|---|---|')
     for a, b in zip(vs, vs[1:]):
         added = [n for n in set(names_in[b]) - set(names_in[a]) if not exclude(n)]
         removed = [n for n in set(names_in[a]) - set(names_in[b]) if not exclude(n)]
@@ -190,14 +189,13 @@ def changes_table(L, vs, names_in, exclude=lambda n: False, limit=None):
 
 
 def renames_table(L, checks, label):
-    L.append('CraftBukkit `legacy/FieldRename.java` `%s`; her biri dökümlerde doğrulandı (eski ad, yeninin geldiği\n'
-             'revizyonda kayboluyor).\n' % label)
-    L.append('| Eski ad | Yeni ad | Revizyon |\n|---|---|---|')
+    L.append('From CraftBukkit `legacy/FieldRename.java` `%s`, each checked against the dumps.\n' % label)
+    L.append('| Old name | New name | Revision |\n|---|---|---|')
     for old, new, last_old, first_new, ok in checks:
         if ok:
             L.append('| `%s` | `%s` | %s |' % (old, new, rev(first_new)))
         elif last_old is None:
-            L.append('| `%s` | `%s` | alan adı hep `%s`; sadece Minecraft anahtarı değişti (`%s`) |'
+            L.append('| `%s` | `%s` | the field was always `%s`; only the key changed (`%s`) |'
                      % (old, new, new, new.lower()))
         else:
             L.append('| `%s` | `%s` | %s → %s |' % (old, new, REV[last_old][0], rev(first_new) if first_new else '-'))
@@ -205,12 +203,12 @@ def renames_table(L, checks, label):
 
 
 def values_table(L, rows, columns=('key', 'id')):
-    head = ['Ad', 'İlk revizyon', 'Son revizyon', 'Eski adlar']
+    head = ['Name', 'First revision', 'Last revision', 'Older names']
     if 'key' in columns:
-        head.append('Anahtar')
+        head.append('Key')
     if 'id' in columns:
-        head.append('Sayısal ID')
-    L.append('En yeni adıyla; "Eski adlar" en yeniden eskiye, sunucuda bu sırayla aranır.\n')
+        head.append('Numeric id')
+    L.append('By newest name; older names newest first, tried on a server in this order.\n')
     L.append('| ' + ' | '.join(head) + ' |\n|' + '---|' * len(head))
     for r in sorted(rows, key=lambda r: (vkey(r['first']), r['name'])):
         cells = ['`%s`' % r['name'], rev(r['first']), REV[r['last']][0], ', '.join('`%s`' % o for o in r['old'])]
@@ -234,26 +232,30 @@ def enchantments():
     validate(rows, vs, names_in, 'enchantments')
     n = write_api('enchantment', 'EranoEnchantment', 'enchantments.tsv', rows,
                   lambda r: '' if r['id'] is None else str(r['id']))
-    L = [HEAD % ('Büyüler (`Enchantment`), 1.8 - 26.3',
-                 "Hangi büyü hangi revizyonda var, adı ne zaman değişti. EranoAPI'nin `EranoEnchantment`'ı bu "
-                 "tablolardan üretilir.")]
-    L.append("""## Sistemler
+    L = [HEAD % ('Enchantments (`Enchantment`), 1.8 - 26.3',
+                 """`EranoEnchantment`: every enchantment of today by its newest name, on every server from 1.8.
 
-| Sürümler | Sistem |
+```java
+EranoEnchantment.SHARPNESS.enchant(sword, 2);    // DAMAGE_ALL up to 1.20.4
+EranoEnchantment.match("DAMAGE_ALL");            // SHARPNESS; keys too: "minecraft:sharpness"
+EranoEnchantment.SHARPNESS.legacyId();           // 16, the 1.8 - 1.12 numeric id
+```""")]
+    L.append("""## Systems
+
+| Versions | System |
 |---|---|
-| 1.8 - 1.12.2 | Sınıf, sabitleri sayısal ID ile (`DAMAGE_ALL` = 16); `getByName` / `getById` |
-| 1.13 - 1.20.4 | Aynı sabit adları, artık Minecraft anahtarıyla (`minecraft:sharpness`, `getByKey`); sayısal ID'ler kalktı |
-| 1.20.5 - 26.3 | Sabitler Minecraft'ın adlarını aldı (`SHARPNESS`) ve registry'den gelir; sınıf hâlâ statik alanlı |
+| 1.8 - 1.12.2 | Class with numeric ids (`DAMAGE_ALL` = 16); `getByName` / `getById` |
+| 1.13 - 1.20.4 | Same names, now with keys (`minecraft:sharpness`, `getByKey`); no numeric ids |
+| 1.20.5 - 26.3 | Fields take Minecraft's names (`SHARPNESS`), values come from the registry |
 
-EranoAPI sabiti statik alanından okur (`Enchantment.class.getField(ad)`): bu her sürümde var, `getByName`'in
-1.20.5+'ta CraftBukkit tarafından yeniden yönlendirilmesine ya da `getByKey`'in 1.13 öncesi yokluğuna takılmaz.
+EranoAPI reads the static field (`Enchantment.class.getField(name)`), which every version has.
 
-## İsim değişiklikleri
+## Renames
 """)
     renames_table(L, checks, 'ENCHANTMENT_DATA')
-    L.append('## Revizyon revizyon\n')
+    L.append('## Changes per revision\n')
     changes_table(L, vs, names_in)
-    L.append('## Bütün değerler\n')
+    L.append('## All values\n')
     values_table(L, rows)
     write_doc('Enchantment.md', L)
     return n
@@ -271,42 +273,49 @@ def potions():
     n1 = write_api('potion', 'EranoPotionEffect', 'effects.tsv', effects,
                    lambda r: '' if r['id'] is None else str(r['id']))
     n2 = write_api('potion', 'EranoPotionType', 'types.tsv', types)
-    L = [HEAD % ('İksirler (`PotionEffectType`, `PotionType`), 1.8 - 26.3',
-                 "İksir etkileri (oyuncudaki etki) ve iksir türleri (iksir eşyasının türü). EranoAPI'nin "
-                 "`EranoPotionEffect` ve `EranoPotionType`'ı bu tablolardan üretilir.")]
-    L.append("""## İksir etkileri
+    L = [HEAD % ('Potions (`PotionEffectType`, `PotionType`), 1.8 - 26.3',
+                 """`EranoPotionEffect` (the effect on an entity) and `EranoPotionType` (a potion item's type), by their newest
+names on every server from 1.8.
 
-| Sürümler | Sistem |
+```java
+EranoPotionEffect.STRENGTH.apply(player, 200, 1);                    // INCREASE_DAMAGE up to 1.20.4
+ItemStack potion = EranoPotionType.LONG_SWIFTNESS.parseItem(EranoPotionType.Form.SPLASH, 1);
+```
+
+| Server | Potion item |
 |---|---|
-| 1.8 - 1.20.2 | Sınıf, sabitleri sayısal ID ile (`INCREASE_DAMAGE` = 5); ID'ler hiç değişmedi |
-| 1.20.3 - 1.20.4 | Minecraft anahtarı geldi (`minecraft:strength`) |
-| 1.20.5 - 26.3 | Sabitler Minecraft'ın adlarını aldı (`STRENGTH`) ve registry'den gelir |
+| 1.8 | `POTION` with a data value (the `Potion` class; splash is a bit) |
+| 1.9 - 1.20.1 | `POTION` / `SPLASH_POTION` / `LINGERING_POTION` + `PotionData(type, extended, upgraded)` |
+| 1.20.2 - 26.3 | `PotionMeta#setBasePotionType`; long / strong types are their own constants |""")]
+    L.append("""## Potion effects
 
-### İsim değişiklikleri
+| Versions | System |
+|---|---|
+| 1.8 - 1.20.2 | Class with numeric ids (`INCREASE_DAMAGE` = 5); the ids never changed |
+| 1.20.3 - 1.20.4 | Keys added (`minecraft:strength`) |
+| 1.20.5 - 26.3 | Fields take Minecraft's names (`STRENGTH`), values come from the registry |
+
+### Renames
 """)
     renames_table(L, checks_e, 'POTION_EFFECT_TYPE_DATA')
-    L.append('### Revizyon revizyon\n')
+    L.append('### Changes per revision\n')
     changes_table(L, vs, names_e)
-    L.append('### Bütün değerler\n')
+    L.append('### All values\n')
     values_table(L, effects)
-    L.append("""## İksir türleri
+    L.append("""## Potion types
 
-| Sürümler | Sistem | İksir eşyası |
-|---|---|---|
-| 1.8 | Enum | `POTION` + veri değeri (`Potion` sınıfı hesaplar; splash da bir bit) |
-| 1.9 - 1.20.1 | Enum | `POTION` / `SPLASH_POTION` / `LINGERING_POTION` + `PotionMeta#setBasePotionData(PotionData(tür, uzun, güçlü))` |
-| 1.20.2 - 1.20.4 | Uzun / güçlü türler kendi sabitleri oldu (`LONG_SWIFTNESS`, `STRONG_SWIFTNESS`) | `PotionMeta#setBasePotionType` |
-| 1.20.5 - 26.3 | Sabitler Minecraft'ın adlarını aldı (`SWIFTNESS`, `LEAPING` ...); `Potion` sınıfı kalktı | aynı |
+| Versions | System |
+|---|---|
+| 1.8 - 1.20.1 | Enum; long / strong are flags of the item |
+| 1.20.2 - 1.20.4 | Long / strong types become constants (`LONG_SWIFTNESS`, `STRONG_SWIFTNESS`) |
+| 1.20.5 - 26.3 | Constants take Minecraft's names (`SWIFTNESS`, `LEAPING` ...); the `Potion` class is gone |
 
-`EranoPotionType` bugünkü adıyla (`LONG_SWIFTNESS`) her sürümde eşya verir: 1.20.2 öncesinde ana tür (`SWIFTNESS`,
-o sürümde `SPEED`) ve uzun / güçlü bayrağıyla.
-
-### İsim değişiklikleri
+### Renames
 """)
     renames_table(L, checks_t, 'POTION_TYPE_DATA')
-    L.append('### Revizyon revizyon\n')
+    L.append('### Changes per revision\n')
     changes_table(L, vs2, names_t)
-    L.append('### Bütün değerler\n')
+    L.append('### All values\n')
     values_table(L, types, columns=('key',))
     write_doc('Potion.md', L)
     return n1, n2
@@ -325,45 +334,51 @@ def particles():
     finish(effects, vs2)
     validate(effects, vs2, names_e, 'effects')
     n2 = write_api('particle', 'EranoEffect', 'effects.tsv', effects)
-    L = [HEAD % ('Parçacıklar (`Particle`) ve efektler (`Effect`), 1.8 - 26.3',
-                 "Hangi parçacık ve dünya efekti hangi revizyonda var, adı ne zaman değişti. EranoAPI'nin "
-                 "`EranoParticle` ve `EranoEffect`'i bu tablolardan üretilir.")]
-    L.append("""## Parçacıklar
+    L = [HEAD % ('Particles (`Particle`) and effects (`Effect`), 1.8 - 26.3',
+                 """`EranoParticle`: every particle of today by its newest name, on every server from 1.8 (which has no particle
+API: EranoAPI sends the packet). Data is given the same way everywhere and converted per version: a `Color` for
+`DUST` and `ENTITY_EFFECT`; a `Material`, `EranoMaterial` or `ItemStack` for `BLOCK`, `ITEM`, `FALLING_DUST` ...
+`EranoEffect`: the world effects (`World#playEffect`) and which server has which.
 
-| Sürümler | Sistem | Veri |
+```java
+EranoParticle.HAPPY_VILLAGER.spawn(location, 10, 0.5, 0.5, 0.5, 0);
+EranoParticle.DUST.spawn(location, 1, 0, 0, 0, 0, Color.AQUA);                 // colored REDSTONE packet on 1.8
+EranoParticle.BLOCK.spawn(location, 30, 0.3, 0.3, 0.3, 0, EranoMaterial.RED_WOOL);
+EranoEffect.STEP_SOUND.play(location, Material.STONE);
+```""")]
+    L.append("""## Particles
+
+| Versions | System | Data |
 |---|---|---|
-| 1.8 - 1.8.8 | Bukkit'te parçacık API'si yok. NMS `EnumParticle` + `PacketPlayOutWorldParticles` (Spigot'un `Effect` parçacık girdileri de aynı paketi yollar) | `int[]`: eşya `{id, veri}`, blok `{id \\| veri << 12}`; kızıltaş rengi ofsetlerde |
-| 1.9 - 1.12.2 | `Particle` enum'u, adları 1.8'in `EnumParticle`'ıyla aynı | `ItemStack`, `MaterialData` |
-| 1.13 - 1.20.4 | Aynı adlar; blok verisi `BlockData`, kızıltaş `DustOptions`; eskileri `LEGACY_BLOCK_CRACK` ... | `BlockData`, `DustOptions`, `ItemStack` ... |
-| 1.20.5 - 26.3 | Sabitler Minecraft'ın adlarını aldı (`REDSTONE` → `DUST`, `BLOCK_CRACK` → `BLOCK`) | `ENTITY_EFFECT` artık `Color` ister |
+| 1.8 - 1.8.8 | No Bukkit API: NMS `EnumParticle` + `PacketPlayOutWorldParticles` | `int[]`: item `{id, data}`, block `{id \\| data << 12}`; dust color in the offsets |
+| 1.9 - 1.12.2 | `Particle` enum, the names of 1.8's `EnumParticle` | `ItemStack`, `MaterialData` |
+| 1.13 - 1.20.4 | Same names; old data types moved to `LEGACY_BLOCK_CRACK` ... | `BlockData`, `DustOptions`, `ItemStack` |
+| 1.20.5 - 26.3 | Constants take Minecraft's names (`REDSTONE` → `DUST`, `BLOCK_CRACK` → `BLOCK`) | `ENTITY_EFFECT` needs a `Color` |
 
-1.8'in parçacıkları buradaki tablolarda `EnumParticle`'dan (Spigot sunucu jar'ı) okundu: 1.9'un `Particle`'ı onun
-adlarını aldı, bu yüzden bir parçacığın 1.8'deki adı 1.9 - 1.20.4'teki adıdır. `LEGACY_` sabitleri (1.13 - 1.20.4,
-eski `MaterialData` ile) tablolarda yok.
+1.8's particles here are read from `EnumParticle` (the Spigot server jar). `LEGACY_` constants are left out.
 
-### İsim değişiklikleri
+### Renames
 """)
     renames_table(L, checks, 'PARTICLE_DATA')
-    L.append("""Tabloda olmayan değişiklikler (CraftBukkit eşlemedi, eski ad kaldırıldı):
-`BARRIER` ve `LIGHT` 1.18'de `BLOCK_MARKER`'a (bariyer / ışık bloğu verisiyle) döndü; `DRIPPING_CHERRY_LEAVES`,
-`FALLING_CHERRY_LEAVES`, `LANDING_CHERRY_LEAVES` 1.20'de tek `CHERRY_LEAVES` oldu; `FOOTSTEP` ve `ITEM_TAKE` 1.13'te,
-`GUST_DUST` 1.20.5'te kalktı.
+    L.append("""Not in that table (removed without a mapping): `BARRIER` and `LIGHT` became `BLOCK_MARKER` (with the block's
+data) in 1.18; the three cherry leaves particles became `CHERRY_LEAVES` in 1.20; `FOOTSTEP` and `ITEM_TAKE` went in
+1.13, `GUST_DUST` in 1.20.5.
 
-### Revizyon revizyon
+### Changes per revision
 """)
     changes_table(L, vs, names_in, exclude=legacy, limit=30)
-    L.append('### Bütün değerler\n')
+    L.append('### All values\n')
     values_table(L, [r for r in rows], columns=('key',))
-    L.append("""## Efektler
+    L.append("""## Effects
 
-`World#playEffect`: ses ya da görüntü olan dünya olayları (kapı sesi, `STEP_SOUND` blok kırılma parçacıkları ...).
-Adları hiç değişmedi; sadece eklendiler. 1.9 - 1.12'de Spigot'un eklediği parçacık girdileri (`FLAME`,
-`HAPPY_VILLAGER` ...) 1.13'te kalktı: onlar parçacık, `EranoParticle` ile.
+`World#playEffect`: world events that are a sound or a sight (a door, `STEP_SOUND`'s block break ...). Never renamed,
+only added. Spigot's particle entries of 1.8 - 1.12 (`FLAME`, `HAPPY_VILLAGER` ...) went in 1.13; they are
+`EranoParticle`s.
 
-### Revizyon revizyon
+### Changes per revision
 """)
     changes_table(L, vs2, names_e)
-    L.append('### Bütün değerler\n')
+    L.append('### All values\n')
     values_table(L, effects, columns=())
     write_doc('Particle.md', L)
     return n1, n2
@@ -375,39 +390,41 @@ def sounds():
     vs, rows, names_in = sound_rows()
     n = write_api('sound', 'EranoSound', 'sounds.tsv', rows)
     by_name = {r['name']: r for r in rows}
-    L = [HEAD % ('Sesler (`Sound`), 1.8 - 26.3',
-                 "Hangi ses hangi revizyonda var, adı ne zaman değişti. EranoAPI'nin `EranoSound`'u bu tablolardan "
-                 "üretilir.")]
-    L.append("""## Sistemler
+    L = [HEAD % ('Sounds (`Sound`), 1.8 - 26.3',
+                 """`EranoSound`: every sound of today by its newest name, on every server from 1.8.
 
-| Sürümler | Sistem |
+```java
+EranoSound.ENTITY_PLAYER_LEVELUP.play(player, 1f, 1f);       // LEVEL_UP on 1.8
+EranoSound.BLOCK_NOTE_BLOCK_PLING.play(location, 1f, 2f);    // BLOCK_NOTE_PLING on 1.9 - 1.12
+EranoSound.match("AMBIENCE_THUNDER");                        // ENTITY_LIGHTNING_BOLT_THUNDER; keys too
+```""")]
+    L.append("""## Systems
+
+| Versions | System |
 |---|---|
-| 1.8 - 1.8.8 | Enum, 194 ses, kendi adlarıyla (`LEVEL_UP`, `CLICK`); Minecraft'ın ses olayları da başka (`random.levelup`) |
-| 1.9 - 1.12.2 | Minecraft 1.9 bütün sesleri yeniden adlandırdı; enum onun adlarını aldı (`ENTITY_PLAYER_LEVELUP` = `entity.player.levelup`) |
-| 1.13 - 1.21.1 | 1.13'te Minecraft yine yeniden adlandırdı (`block.note.pling` → `block.note_block.pling`), enum da |
-| 1.21.2 - 26.3 | `Sound` enum değil arayüz (registry'den gelir); `Sound.valueOf` ve `switch` eski eklentilerde kırılır, statik alanlar duruyor |
+| 1.8 - 1.8.8 | Enum, 194 sounds with Bukkit's own names (`LEVEL_UP`, `CLICK`) |
+| 1.9 - 1.12.2 | Minecraft renamed every sound; the enum took its names (`ENTITY_PLAYER_LEVELUP`) |
+| 1.13 - 1.21.1 | Renamed again (`block.note.pling` → `block.note_block.pling`) |
+| 1.21.2 - 26.3 | `Sound` is an interface (registry); `valueOf` / `switch` break in old plugins, static fields stay |
 
-## Yöntem
+## How sounds are matched
 
-CraftBukkit 1.9 ve 1.13'teki ad değişiklikleri için tablo tutmadı. Bu yüzden her ses Mojang'ın verisiyle izlendi:
+CraftBukkit kept no rename table for 1.9 and 1.13, so each sound is followed with Mojang's data:
 
-1. Her revizyonda Bukkit sabiti → Minecraft ses olayı: 1.16'dan önce CraftBukkit'in `CraftSound`'u (git geçmişi),
-   sonra API'nin kendi anahtarları.
-2. Aynı olay sonraki revizyonda da varsa aynı ses.
-3. Yoksa (yeniden adlandırma) eski revizyonun **aynı ses dosyalarını çalan** olayı, Mojang'ın o sürümdeki
-   `sounds.json`'undan; yolu değişip içeriği aynı olan dosya (asset hash'i) da aynı dosya sayıldı. Dosyaların en az
-   yarısı ortak olmalı.
-4. Mojang'ın 1.9'da yeniden kaydettiği birkaç ses (sandık, kapı, tuzak kapı, çit kapısı) dosya paylaşmıyor; onlar 1.8 oyununun
-   aynı olayda çaldığı sesle eşlendi (tabloda "anlamca").
-5. Her revizyonda doğrulandı: bir sesin adları yeniden eskiye sırayla denendiğinde sunucuda bulunan ilki o sesin
-   kendisi.
+1. Bukkit constant → Minecraft sound event per revision (CraftBukkit's `CraftSound` before 1.16, the API's keys after).
+2. The same event in the next revision is the same sound.
+3. Otherwise the older revision's event that **plays the same files** (Mojang's `sounds.json`; a moved file with the
+   same content counts). At least half of the files must be shared.
+4. A few sounds Mojang re-recorded in 1.9 (chests, doors, trapdoors, fence gates) share no file; they take what 1.8
+   played for the same thing ("by meaning" below).
+5. Checked on every revision: trying a sound's names newest first, the first one the server has is that sound.
 
-1.8'in 194 sesinden ikisi bugünkü bir sese bağlanmadı: `NOTE_BASS` (1.9'da yerine başka bir kayıt geldi) ve
-`WOLF_HOWL` (kurt uluması 1.21.5'te kaldırıldı).
+Two of 1.8's 194 sounds have no sound today: `NOTE_BASS` (replaced by another recording in 1.9) and `WOLF_HOWL`
+(removed in 1.21.5).
 
-## Önemli seslerin adları
+## Common sounds
 """)
-    L.append('| Bugün | 1.13 - 1.21 | 1.9 - 1.12 | 1.8 |\n|---|---|---|---|')
+    L.append('| Today | 1.13 - 1.21 | 1.9 - 1.12 | 1.8 |\n|---|---|---|---|')
     for name in ['ENTITY_PLAYER_LEVELUP', 'ENTITY_EXPERIENCE_ORB_PICKUP', 'UI_BUTTON_CLICK', 'BLOCK_NOTE_BLOCK_PLING',
                  'BLOCK_NOTE_BLOCK_HARP', 'BLOCK_NOTE_BLOCK_BASEDRUM', 'ENTITY_LIGHTNING_BOLT_THUNDER',
                  'ENTITY_GENERIC_EXPLODE', 'ENTITY_ENDERMAN_TELEPORT', 'ENTITY_ENDER_DRAGON_GROWL', 'ENTITY_WITHER_SPAWN',
@@ -416,9 +433,9 @@ CraftBukkit 1.9 ve 1.13'teki ad değişiklikleri için tablo tutmadı. Bu yüzde
         h = by_name[name]['hist']
         cell = lambda v: '`%s`' % h[v][0] if v in h else '-'
         L.append('| `%s` | %s | %s | %s |' % (name, cell('1.13'), cell('1.12.2'), cell('1.8.8')))
-    L.append('\n## Revizyon revizyon\n')
-    L.append('Yeniden adlandırmalar eklenen / kaldırılan sayılmadı.\n')
-    L.append('| Geçiş | Eklenen | Kaldırılan | Yeniden adlandırılan |\n|---|---|---|---|')
+    L.append('\n## Changes per revision\n')
+    L.append('Renames are not counted as added / removed.\n')
+    L.append('| Change | Added | Removed | Renamed |\n|---|---|---|---|')
     for a, b in zip(vs, vs[1:]):
         renamed = sorted({(r['hist'][a][0], r['hist'][b][0]) for r in rows
                           if a in r['hist'] and b in r['hist'] and r['hist'][a][0] != r['hist'][b][0]})
@@ -427,14 +444,14 @@ CraftBukkit 1.9 ve 1.13'teki ad değişiklikleri için tablo tutmadı. Bu yüzde
         added = [n for n in set(names_in[b]) - set(names_in[a]) if n not in new_side]
         removed = [n for n in set(names_in[a]) - set(names_in[b]) if n not in old_side]
         if added or removed or renamed:
-            ren = ('%d ses (aşağıdaki tabloda)' % len(renamed)) if len(renamed) > 40 else \
+            ren = ('%d sounds (table below)' % len(renamed)) if len(renamed) > 40 else \
                 ', '.join('`%s` → `%s`' % x for x in renamed)
             L.append('| %s → %s | %s | %s | %s |' % (REV[a][0], rev(b), names(added, 40), names(removed, 40), ren))
-    L.append('\n## Bütün sesler\n')
-    L.append('Bugünkü adıyla; her dönemdeki adı. "-": o dönemde yok. Not: "anlamca" (yukarıda 4. madde), '
-             '"yakın" (dosyaların sadece bir kısmı ortak: Minecraft bir müziği bölgelere ayırdığında eski genel '
-             'müzik).\n')
-    L.append('| Ad | Anahtar | İlk revizyon | 1.13 - 1.21 | 1.9 - 1.12 | 1.8 | Not |\n|---|---|---|---|---|---|---|')
+    L.append('\n## All sounds\n')
+    L.append('By today\'s name, with its name in each era ("same": unchanged, "-": not there). Note: "by meaning" '
+             '(point 4 above), "close" (only part of the files shared: a music split into biomes plays the old general '
+             'one).\n')
+    L.append('| Name | Key | First revision | 1.13 - 1.21 | 1.9 - 1.12 | 1.8 | Note |\n|---|---|---|---|---|---|---|')
     for r in sorted(rows, key=lambda r: r['name']):
         h = r['hist']
         def era(versions):
@@ -444,15 +461,15 @@ CraftBukkit 1.9 ve 1.13'teki ad değişiklikleri için tablo tutmadı. Bu yüzde
                     got.append(h[v][0])
             if got:
                 return ', '.join('`%s`' % x for x in got)
-            return 'aynı' if any(v in h for v in versions) else '-'
+            return 'same' if any(v in h for v in versions) else '-'
         modern = [v for v in vs if vkey(v) >= [1, 13] and vkey(v) < [1, 21, 2]]
         middle = [v for v in vs if [1, 9] <= vkey(v) < [1, 13]]
         old = [v for v in vs if vkey(v) < [1, 9]]
         note = []
         if r['notes'].get('meaning'):
-            note.append('anlamca')
+            note.append('by meaning')
         if 'fuzzy' in r['notes']:
-            note.append('yakın: ' + r['notes']['fuzzy'])
+            note.append('close: ' + r['notes']['fuzzy'])
         L.append('| `%s` | `%s` | %s | %s | %s | %s | %s |' % (r['name'], r['key'], REV[r['first']][0], era(modern),
                                                              era(middle), era(old), '; '.join(note)))
     write_doc('Sound.md', L)

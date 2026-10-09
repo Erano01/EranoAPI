@@ -1,31 +1,37 @@
-# Parçacıklar (`Particle`) ve efektler (`Effect`), 1.8 - 26.3
+# Particles (`Particle`) and effects (`Effect`), 1.8 - 26.3
 
-Hangi parçacık ve dünya efekti hangi revizyonda var, adı ne zaman değişti. EranoAPI'nin `EranoParticle` ve `EranoEffect`'i bu tablolardan üretilir.
+`EranoParticle`: every particle of today by its newest name, on every server from 1.8 (which has no particle
+API: EranoAPI sends the packet). Data is given the same way everywhere and converted per version: a `Color` for
+`DUST` and `ENTITY_EFFECT`; a `Material`, `EranoMaterial` or `ItemStack` for `BLOCK`, `ITEM`, `FALLING_DUST` ...
+`EranoEffect`: the world effects (`World#playEffect`) and which server has which.
 
-Döküm her NMS revizyonunun Spigot API'sinin bytecode'undan (sınıflar yüklenmeden; registry tabanlı değerler de),
-isim değişiklikleri CraftBukkit'in kendi tablolarından (`legacy/FieldRename.java`); hepsi
-`scripts/registry-report/run.sh` ile yeniden üretilir. Revizyonlar ve yöntem: [Material.md](Material.md),
-[Versioned-APIs.md](Versioned-APIs.md).
+```java
+EranoParticle.HAPPY_VILLAGER.spawn(location, 10, 0.5, 0.5, 0.5, 0);
+EranoParticle.DUST.spawn(location, 1, 0, 0, 0, 0, Color.AQUA);                 // colored REDSTONE packet on 1.8
+EranoParticle.BLOCK.spawn(location, 30, 0.3, 0.3, 0.3, 0, EranoMaterial.RED_WOOL);
+EranoEffect.STEP_SOUND.play(location, Material.STONE);
+```
 
-## Parçacıklar
+The tables below are what it is generated from (`scripts/registry-report/run.sh`): every NMS revision's Spigot API,
+read from its bytecode (no class loaded, so registry-backed values too), and CraftBukkit's own rename tables
+(`legacy/FieldRename.java`). See also [Versioned-APIs.md](Versioned-APIs.md).
 
-| Sürümler | Sistem | Veri |
+## Particles
+
+| Versions | System | Data |
 |---|---|---|
-| 1.8 - 1.8.8 | Bukkit'te parçacık API'si yok. NMS `EnumParticle` + `PacketPlayOutWorldParticles` (Spigot'un `Effect` parçacık girdileri de aynı paketi yollar) | `int[]`: eşya `{id, veri}`, blok `{id \| veri << 12}`; kızıltaş rengi ofsetlerde |
-| 1.9 - 1.12.2 | `Particle` enum'u, adları 1.8'in `EnumParticle`'ıyla aynı | `ItemStack`, `MaterialData` |
-| 1.13 - 1.20.4 | Aynı adlar; blok verisi `BlockData`, kızıltaş `DustOptions`; eskileri `LEGACY_BLOCK_CRACK` ... | `BlockData`, `DustOptions`, `ItemStack` ... |
-| 1.20.5 - 26.3 | Sabitler Minecraft'ın adlarını aldı (`REDSTONE` → `DUST`, `BLOCK_CRACK` → `BLOCK`) | `ENTITY_EFFECT` artık `Color` ister |
+| 1.8 - 1.8.8 | No Bukkit API: NMS `EnumParticle` + `PacketPlayOutWorldParticles` | `int[]`: item `{id, data}`, block `{id \| data << 12}`; dust color in the offsets |
+| 1.9 - 1.12.2 | `Particle` enum, the names of 1.8's `EnumParticle` | `ItemStack`, `MaterialData` |
+| 1.13 - 1.20.4 | Same names; old data types moved to `LEGACY_BLOCK_CRACK` ... | `BlockData`, `DustOptions`, `ItemStack` |
+| 1.20.5 - 26.3 | Constants take Minecraft's names (`REDSTONE` → `DUST`, `BLOCK_CRACK` → `BLOCK`) | `ENTITY_EFFECT` needs a `Color` |
 
-1.8'in parçacıkları buradaki tablolarda `EnumParticle`'dan (Spigot sunucu jar'ı) okundu: 1.9'un `Particle`'ı onun
-adlarını aldı, bu yüzden bir parçacığın 1.8'deki adı 1.9 - 1.20.4'teki adıdır. `LEGACY_` sabitleri (1.13 - 1.20.4,
-eski `MaterialData` ile) tablolarda yok.
+1.8's particles here are read from `EnumParticle` (the Spigot server jar). `LEGACY_` constants are left out.
 
-### İsim değişiklikleri
+### Renames
 
-CraftBukkit `legacy/FieldRename.java` `PARTICLE_DATA`; her biri dökümlerde doğrulandı (eski ad, yeninin geldiği
-revizyonda kayboluyor).
+From CraftBukkit `legacy/FieldRename.java` `PARTICLE_DATA`, each checked against the dumps.
 
-| Eski ad | Yeni ad | Revizyon |
+| Old name | New name | Revision |
 |---|---|---|
 | `EXPLOSION_NORMAL` | `POOF` | V1_20_R4 (1.20.5 - 1.20.6) |
 | `EXPLOSION_LARGE` | `EXPLOSION` | V1_20_R4 (1.20.5 - 1.20.6) |
@@ -61,14 +67,13 @@ revizyonda kayboluyor).
 | `TOTEM` | `TOTEM_OF_UNDYING` | V1_20_R4 (1.20.5 - 1.20.6) |
 | `GUST_EMITTER` | `GUST_EMITTER_LARGE` | V1_20_R4 (1.20.5 - 1.20.6) |
 
-Tabloda olmayan değişiklikler (CraftBukkit eşlemedi, eski ad kaldırıldı):
-`BARRIER` ve `LIGHT` 1.18'de `BLOCK_MARKER`'a (bariyer / ışık bloğu verisiyle) döndü; `DRIPPING_CHERRY_LEAVES`,
-`FALLING_CHERRY_LEAVES`, `LANDING_CHERRY_LEAVES` 1.20'de tek `CHERRY_LEAVES` oldu; `FOOTSTEP` ve `ITEM_TAKE` 1.13'te,
-`GUST_DUST` 1.20.5'te kalktı.
+Not in that table (removed without a mapping): `BARRIER` and `LIGHT` became `BLOCK_MARKER` (with the block's
+data) in 1.18; the three cherry leaves particles became `CHERRY_LEAVES` in 1.20; `FOOTSTEP` and `ITEM_TAKE` went in
+1.13, `GUST_DUST` in 1.20.5.
 
-### Revizyon revizyon
+### Changes per revision
 
-| Geçiş | Eklenen | Kaldırılan |
+| Change | Added | Removed |
 |---|---|---|
 | V1_8_R3 → V1_9_R1 (1.9 - 1.9.3) | `DAMAGE_INDICATOR`, `DRAGON_BREATH`, `END_ROD`, `SWEEP_ATTACK` |  |
 | V1_9_R2 → V1_10_R1 (1.10.x) | `FALLING_DUST` |  |
@@ -83,7 +88,7 @@ Tabloda olmayan değişiklikler (CraftBukkit eşlemedi, eski ad kaldırıldı):
 | V1_19_R2 → V1_19_R3 (1.19.4) | `DRIPPING_CHERRY_LEAVES`, `FALLING_CHERRY_LEAVES`, `LANDING_CHERRY_LEAVES` |  |
 | V1_19_R3 → V1_20_R1 (1.20 - 1.20.1) | `CHERRY_LEAVES`, `EGG_CRACK` | `DRIPPING_CHERRY_LEAVES`, `FALLING_CHERRY_LEAVES`, `LANDING_CHERRY_LEAVES` |
 | V1_20_R2 → V1_20_R3 (1.20.3 - 1.20.4) | `DUST_PLUME`, `GUST`, `GUST_DUST`, `GUST_EMITTER`, `TRIAL_SPAWNER_DETECTION`, `WHITE_SMOKE` |  |
-| V1_20_R3 → V1_20_R4 (1.20.5 - 1.20.6) | 40 değer (aşağıdaki tabloda) | 35 değer (aşağıdaki tabloda) |
+| V1_20_R3 → V1_20_R4 (1.20.5 - 1.20.6) | 40 values (table below) | 35 values (table below) |
 | V1_21_R1 → V1_21_R2 (1.21.2 - 1.21.3) | `BLOCK_CRUMBLE`, `TRAIL` |  |
 | V1_21_R2 → V1_21_R3 (1.21.4) | `PALE_OAK_LEAVES` |  |
 | V1_21_R3 → V1_21_R4 (1.21.5) | `FIREFLY`, `TINTED_LEAVES` |  |
@@ -92,11 +97,11 @@ Tabloda olmayan değişiklikler (CraftBukkit eşlemedi, eski ad kaldırıldı):
 | V26_1 → V26_2 (26.2.x) | `GEYSER`, `GEYSER_BASE`, `GEYSER_PLUME`, `GEYSER_POOF`, `NOXIOUS_GAS`, `NOXIOUS_GAS_CLOUD`, `SULFUR_BUBBLES`, `SULFUR_CUBE_GOO` |  |
 | V26_2 → V26_3 (26.3+) | `ORANGE_POPLAR_LEAVES`, `RED_POPLAR_LEAVES`, `YELLOW_POPLAR_LEAVES` |  |
 
-### Bütün değerler
+### All values
 
-En yeni adıyla; "Eski adlar" en yeniden eskiye, sunucuda bu sırayla aranır.
+By newest name; older names newest first, tried on a server in this order.
 
-| Ad | İlk revizyon | Son revizyon | Eski adlar | Anahtar |
+| Name | First revision | Last revision | Older names | Key |
 |---|---|---|---|---|
 | `ANGRY_VILLAGER` | V1_8_R1 (1.8 - 1.8.2) | V26_3 | `VILLAGER_ANGRY` | `angry_villager` |
 | `BARRIER` | V1_8_R1 (1.8 - 1.8.2) | V1_17_R1 |  | `barrier` |
@@ -236,26 +241,26 @@ En yeni adıyla; "Eski adlar" en yeniden eskiye, sunucuda bu sırayla aranır.
 | `RED_POPLAR_LEAVES` | V26_3 (26.3+) | V26_3 |  | `red_poplar_leaves` |
 | `YELLOW_POPLAR_LEAVES` | V26_3 (26.3+) | V26_3 |  | `yellow_poplar_leaves` |
 
-## Efektler
+## Effects
 
-`World#playEffect`: ses ya da görüntü olan dünya olayları (kapı sesi, `STEP_SOUND` blok kırılma parçacıkları ...).
-Adları hiç değişmedi; sadece eklendiler. 1.9 - 1.12'de Spigot'un eklediği parçacık girdileri (`FLAME`,
-`HAPPY_VILLAGER` ...) 1.13'te kalktı: onlar parçacık, `EranoParticle` ile.
+`World#playEffect`: world events that are a sound or a sight (a door, `STEP_SOUND`'s block break ...). Never renamed,
+only added. Spigot's particle entries of 1.8 - 1.12 (`FLAME`, `HAPPY_VILLAGER` ...) went in 1.13; they are
+`EranoParticle`s.
 
-### Revizyon revizyon
+### Changes per revision
 
-| Geçiş | Eklenen | Kaldırılan |
+| Change | Added | Removed |
 |---|---|---|
 | V1_8_R3 → V1_9_R1 (1.9 - 1.9.3) | `ANVIL_BREAK`, `ANVIL_LAND`, `ANVIL_USE`, `BAT_TAKEOFF`, `BREWING_STAND_BREW`, `CHORUS_FLOWER_DEATH`, `CHORUS_FLOWER_GROW`, `DOOR_CLOSE`, `DRAGON_BREATH`, `ENDERDRAGON_GROWL`, `ENDERDRAGON_SHOOT`, `ENDEREYE_LAUNCH`, `END_GATEWAY_SPAWN`, `FENCE_GATE_CLOSE`, `FENCE_GATE_TOGGLE`, `FIREWORK_SHOOT`, `IRON_DOOR_CLOSE`, `IRON_DOOR_TOGGLE`, `IRON_TRAPDOOR_CLOSE`, `IRON_TRAPDOOR_TOGGLE`, `PORTAL_TRAVEL`, `TRAPDOOR_CLOSE`, `TRAPDOOR_TOGGLE`, `VILLAGER_PLANT_GROW`, `WITHER_BREAK_BLOCK`, `WITHER_SHOOT`, `ZOMBIE_CONVERTED_VILLAGER`, `ZOMBIE_INFECT` |  |
 | V1_12_R1 → V1_13_R1 (1.13) |  | `CLOUD`, `COLOURED_DUST`, `CRIT`, `EXPLOSION`, `EXPLOSION_HUGE`, `EXPLOSION_LARGE`, `FIREWORKS_SPARK`, `FLAME`, `FLYING_GLYPH`, `FOOTSTEP`, `HAPPY_VILLAGER`, `HEART`, `INSTANT_SPELL`, `ITEM_BREAK`, `LARGE_SMOKE`, `LAVADRIP`, `LAVA_POP`, `MAGIC_CRIT`, `NOTE`, `PARTICLE_SMOKE`, `PORTAL`, `POTION_SWIRL`, `POTION_SWIRL_TRANSPARENT`, `SLIME`, `SMALL_SMOKE`, `SNOWBALL_BREAK`, `SNOW_SHOVEL`, `SPELL`, `SPLASH`, `TILE_BREAK`, `TILE_DUST`, `VILLAGER_THUNDERCLOUD`, `VOID_FOG`, `WATERDRIP`, `WITCH_MAGIC` |
 | V1_14_R1 → V1_15_R1 (1.15.x) | `INSTANT_POTION_BREAK` |  |
 | V1_16_R3 → V1_17_R1 (1.17.x) | `BONE_MEAL_USE`, `BOOK_PAGE_TURN`, `COMPOSTER_FILL_ATTEMPT`, `COPPER_WAX_OFF`, `COPPER_WAX_ON`, `DRIPPING_DRIPSTONE`, `ELECTRIC_SPARK`, `ENDER_DRAGON_DESTROY_BLOCK`, `END_PORTAL_FRAME_FILL`, `GRINDSTONE_USE`, `HUSK_CONVERTED_TO_ZOMBIE`, `LAVA_INTERACT`, `OXIDISED_COPPER_SCRAPE`, `PHANTOM_BITE`, `POINTED_DRIPSTONE_DRIP_LAVA_INTO_CAULDRON`, `POINTED_DRIPSTONE_DRIP_WATER_INTO_CAULDRON`, `POINTED_DRIPSTONE_LAND`, `REDSTONE_TORCH_BURNOUT`, `SKELETON_CONVERTED_TO_STRAY`, `SMITHING_TABLE_USE`, `SPONGE_DRY`, `ZOMBIE_CONVERTED_TO_DROWNED` |  |
 
-### Bütün değerler
+### All values
 
-En yeni adıyla; "Eski adlar" en yeniden eskiye, sunucuda bu sırayla aranır.
+By newest name; older names newest first, tried on a server in this order.
 
-| Ad | İlk revizyon | Son revizyon | Eski adlar |
+| Name | First revision | Last revision | Older names |
 |---|---|---|---|
 | `BLAZE_SHOOT` | V1_8_R1 (1.8 - 1.8.2) | V26_3 |  |
 | `BOW_FIRE` | V1_8_R1 (1.8 - 1.8.2) | V26_3 |  |

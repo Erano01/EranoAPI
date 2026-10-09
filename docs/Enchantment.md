@@ -1,29 +1,32 @@
-# Büyüler (`Enchantment`), 1.8 - 26.3
+# Enchantments (`Enchantment`), 1.8 - 26.3
 
-Hangi büyü hangi revizyonda var, adı ne zaman değişti. EranoAPI'nin `EranoEnchantment`'ı bu tablolardan üretilir.
+`EranoEnchantment`: every enchantment of today by its newest name, on every server from 1.8.
 
-Döküm her NMS revizyonunun Spigot API'sinin bytecode'undan (sınıflar yüklenmeden; registry tabanlı değerler de),
-isim değişiklikleri CraftBukkit'in kendi tablolarından (`legacy/FieldRename.java`); hepsi
-`scripts/registry-report/run.sh` ile yeniden üretilir. Revizyonlar ve yöntem: [Material.md](Material.md),
-[Versioned-APIs.md](Versioned-APIs.md).
+```java
+EranoEnchantment.SHARPNESS.enchant(sword, 2);    // DAMAGE_ALL up to 1.20.4
+EranoEnchantment.match("DAMAGE_ALL");            // SHARPNESS; keys too: "minecraft:sharpness"
+EranoEnchantment.SHARPNESS.legacyId();           // 16, the 1.8 - 1.12 numeric id
+```
 
-## Sistemler
+The tables below are what it is generated from (`scripts/registry-report/run.sh`): every NMS revision's Spigot API,
+read from its bytecode (no class loaded, so registry-backed values too), and CraftBukkit's own rename tables
+(`legacy/FieldRename.java`). See also [Versioned-APIs.md](Versioned-APIs.md).
 
-| Sürümler | Sistem |
+## Systems
+
+| Versions | System |
 |---|---|
-| 1.8 - 1.12.2 | Sınıf, sabitleri sayısal ID ile (`DAMAGE_ALL` = 16); `getByName` / `getById` |
-| 1.13 - 1.20.4 | Aynı sabit adları, artık Minecraft anahtarıyla (`minecraft:sharpness`, `getByKey`); sayısal ID'ler kalktı |
-| 1.20.5 - 26.3 | Sabitler Minecraft'ın adlarını aldı (`SHARPNESS`) ve registry'den gelir; sınıf hâlâ statik alanlı |
+| 1.8 - 1.12.2 | Class with numeric ids (`DAMAGE_ALL` = 16); `getByName` / `getById` |
+| 1.13 - 1.20.4 | Same names, now with keys (`minecraft:sharpness`, `getByKey`); no numeric ids |
+| 1.20.5 - 26.3 | Fields take Minecraft's names (`SHARPNESS`), values come from the registry |
 
-EranoAPI sabiti statik alanından okur (`Enchantment.class.getField(ad)`): bu her sürümde var, `getByName`'in
-1.20.5+'ta CraftBukkit tarafından yeniden yönlendirilmesine ya da `getByKey`'in 1.13 öncesi yokluğuna takılmaz.
+EranoAPI reads the static field (`Enchantment.class.getField(name)`), which every version has.
 
-## İsim değişiklikleri
+## Renames
 
-CraftBukkit `legacy/FieldRename.java` `ENCHANTMENT_DATA`; her biri dökümlerde doğrulandı (eski ad, yeninin geldiği
-revizyonda kayboluyor).
+From CraftBukkit `legacy/FieldRename.java` `ENCHANTMENT_DATA`, each checked against the dumps.
 
-| Eski ad | Yeni ad | Revizyon |
+| Old name | New name | Revision |
 |---|---|---|
 | `PROTECTION_ENVIRONMENTAL` | `PROTECTION` | V1_20_R4 (1.20.5 - 1.20.6) |
 | `PROTECTION_FIRE` | `FIRE_PROTECTION` | V1_20_R4 (1.20.5 - 1.20.6) |
@@ -44,11 +47,11 @@ revizyonda kayboluyor).
 | `ARROW_FIRE` | `FLAME` | V1_20_R4 (1.20.5 - 1.20.6) |
 | `ARROW_INFINITE` | `INFINITY` | V1_20_R4 (1.20.5 - 1.20.6) |
 | `LUCK` | `LUCK_OF_THE_SEA` | V1_20_R4 (1.20.5 - 1.20.6) |
-| `SWEEPING` | `SWEEPING_EDGE` | alan adı hep `SWEEPING_EDGE`; sadece Minecraft anahtarı değişti (`sweeping_edge`) |
+| `SWEEPING` | `SWEEPING_EDGE` | the field was always `SWEEPING_EDGE`; only the key changed (`sweeping_edge`) |
 
-## Revizyon revizyon
+## Changes per revision
 
-| Geçiş | Eklenen | Kaldırılan |
+| Change | Added | Removed |
 |---|---|---|
 | V1_8_R3 → V1_9_R1 (1.9 - 1.9.3) | `FROST_WALKER`, `MENDING` |  |
 | V1_10_R1 → V1_11_R1 (1.11.x) | `BINDING_CURSE`, `SWEEPING_EDGE`, `VANISHING_CURSE` |  |
@@ -59,11 +62,11 @@ revizyonda kayboluyor).
 | V1_20_R3 → V1_20_R4 (1.20.5 - 1.20.6) | `AQUA_AFFINITY`, `BANE_OF_ARTHROPODS`, `BLAST_PROTECTION`, `BREACH`, `DENSITY`, `EFFICIENCY`, `FEATHER_FALLING`, `FIRE_PROTECTION`, `FLAME`, `FORTUNE`, `INFINITY`, `LOOTING`, `LUCK_OF_THE_SEA`, `POWER`, `PROJECTILE_PROTECTION`, `PROTECTION`, `PUNCH`, `RESPIRATION`, `SHARPNESS`, `SMITE`, `UNBREAKING`, `WIND_BURST` | `ARROW_DAMAGE`, `ARROW_FIRE`, `ARROW_INFINITE`, `ARROW_KNOCKBACK`, `DAMAGE_ALL`, `DAMAGE_ARTHROPODS`, `DAMAGE_UNDEAD`, `DIG_SPEED`, `DURABILITY`, `LOOT_BONUS_BLOCKS`, `LOOT_BONUS_MOBS`, `LUCK`, `OXYGEN`, `PROTECTION_ENVIRONMENTAL`, `PROTECTION_EXPLOSIONS`, `PROTECTION_FALL`, `PROTECTION_FIRE`, `PROTECTION_PROJECTILE`, `WATER_WORKER` |
 | V1_21_R6 → V1_21_R7 (1.21.11) | `LUNGE` |  |
 
-## Bütün değerler
+## All values
 
-En yeni adıyla; "Eski adlar" en yeniden eskiye, sunucuda bu sırayla aranır.
+By newest name; older names newest first, tried on a server in this order.
 
-| Ad | İlk revizyon | Son revizyon | Eski adlar | Anahtar | Sayısal ID |
+| Name | First revision | Last revision | Older names | Key | Numeric id |
 |---|---|---|---|---|---|
 | `AQUA_AFFINITY` | V1_8_R1 (1.8 - 1.8.2) | V26_3 | `WATER_WORKER` | `aqua_affinity` | 6 |
 | `BANE_OF_ARTHROPODS` | V1_8_R1 (1.8 - 1.8.2) | V26_3 | `DAMAGE_ARTHROPODS` | `bane_of_arthropods` | 18 |

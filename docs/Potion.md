@@ -1,26 +1,36 @@
-# İksirler (`PotionEffectType`, `PotionType`), 1.8 - 26.3
+# Potions (`PotionEffectType`, `PotionType`), 1.8 - 26.3
 
-İksir etkileri (oyuncudaki etki) ve iksir türleri (iksir eşyasının türü). EranoAPI'nin `EranoPotionEffect` ve `EranoPotionType`'ı bu tablolardan üretilir.
+`EranoPotionEffect` (the effect on an entity) and `EranoPotionType` (a potion item's type), by their newest
+names on every server from 1.8.
 
-Döküm her NMS revizyonunun Spigot API'sinin bytecode'undan (sınıflar yüklenmeden; registry tabanlı değerler de),
-isim değişiklikleri CraftBukkit'in kendi tablolarından (`legacy/FieldRename.java`); hepsi
-`scripts/registry-report/run.sh` ile yeniden üretilir. Revizyonlar ve yöntem: [Material.md](Material.md),
-[Versioned-APIs.md](Versioned-APIs.md).
+```java
+EranoPotionEffect.STRENGTH.apply(player, 200, 1);                    // INCREASE_DAMAGE up to 1.20.4
+ItemStack potion = EranoPotionType.LONG_SWIFTNESS.parseItem(EranoPotionType.Form.SPLASH, 1);
+```
 
-## İksir etkileri
-
-| Sürümler | Sistem |
+| Server | Potion item |
 |---|---|
-| 1.8 - 1.20.2 | Sınıf, sabitleri sayısal ID ile (`INCREASE_DAMAGE` = 5); ID'ler hiç değişmedi |
-| 1.20.3 - 1.20.4 | Minecraft anahtarı geldi (`minecraft:strength`) |
-| 1.20.5 - 26.3 | Sabitler Minecraft'ın adlarını aldı (`STRENGTH`) ve registry'den gelir |
+| 1.8 | `POTION` with a data value (the `Potion` class; splash is a bit) |
+| 1.9 - 1.20.1 | `POTION` / `SPLASH_POTION` / `LINGERING_POTION` + `PotionData(type, extended, upgraded)` |
+| 1.20.2 - 26.3 | `PotionMeta#setBasePotionType`; long / strong types are their own constants |
 
-### İsim değişiklikleri
+The tables below are what it is generated from (`scripts/registry-report/run.sh`): every NMS revision's Spigot API,
+read from its bytecode (no class loaded, so registry-backed values too), and CraftBukkit's own rename tables
+(`legacy/FieldRename.java`). See also [Versioned-APIs.md](Versioned-APIs.md).
 
-CraftBukkit `legacy/FieldRename.java` `POTION_EFFECT_TYPE_DATA`; her biri dökümlerde doğrulandı (eski ad, yeninin geldiği
-revizyonda kayboluyor).
+## Potion effects
 
-| Eski ad | Yeni ad | Revizyon |
+| Versions | System |
+|---|---|
+| 1.8 - 1.20.2 | Class with numeric ids (`INCREASE_DAMAGE` = 5); the ids never changed |
+| 1.20.3 - 1.20.4 | Keys added (`minecraft:strength`) |
+| 1.20.5 - 26.3 | Fields take Minecraft's names (`STRENGTH`), values come from the registry |
+
+### Renames
+
+From CraftBukkit `legacy/FieldRename.java` `POTION_EFFECT_TYPE_DATA`, each checked against the dumps.
+
+| Old name | New name | Revision |
 |---|---|---|
 | `SLOW` | `SLOWNESS` | V1_20_R4 (1.20.5 - 1.20.6) |
 | `FAST_DIGGING` | `HASTE` | V1_20_R4 (1.20.5 - 1.20.6) |
@@ -32,9 +42,9 @@ revizyonda kayboluyor).
 | `CONFUSION` | `NAUSEA` | V1_20_R4 (1.20.5 - 1.20.6) |
 | `DAMAGE_RESISTANCE` | `RESISTANCE` | V1_20_R4 (1.20.5 - 1.20.6) |
 
-### Revizyon revizyon
+### Changes per revision
 
-| Geçiş | Eklenen | Kaldırılan |
+| Change | Added | Removed |
 |---|---|---|
 | V1_8_R3 → V1_9_R1 (1.9 - 1.9.3) | `GLOWING`, `LEVITATION`, `LUCK`, `UNLUCK` |  |
 | V1_12_R1 → V1_13_R1 (1.13) | `CONDUIT_POWER`, `DOLPHINS_GRACE`, `SLOW_FALLING` |  |
@@ -43,11 +53,11 @@ revizyonda kayboluyor).
 | V1_20_R3 → V1_20_R4 (1.20.5 - 1.20.6) | `HASTE`, `INFESTED`, `INSTANT_DAMAGE`, `INSTANT_HEALTH`, `JUMP_BOOST`, `MINING_FATIGUE`, `NAUSEA`, `OOZING`, `RAID_OMEN`, `RESISTANCE`, `SLOWNESS`, `STRENGTH`, `TRIAL_OMEN`, `WEAVING`, `WIND_CHARGED` | `CONFUSION`, `DAMAGE_RESISTANCE`, `FAST_DIGGING`, `HARM`, `HEAL`, `INCREASE_DAMAGE`, `JUMP`, `SLOW`, `SLOW_DIGGING` |
 | V1_21_R6 → V1_21_R7 (1.21.11) | `BREATH_OF_THE_NAUTILUS` |  |
 
-### Bütün değerler
+### All values
 
-En yeni adıyla; "Eski adlar" en yeniden eskiye, sunucuda bu sırayla aranır.
+By newest name; older names newest first, tried on a server in this order.
 
-| Ad | İlk revizyon | Son revizyon | Eski adlar | Anahtar | Sayısal ID |
+| Name | First revision | Last revision | Older names | Key | Numeric id |
 |---|---|---|---|---|---|
 | `ABSORPTION` | V1_8_R1 (1.8 - 1.8.2) | V26_3 |  | `absorption` | 22 |
 | `BLINDNESS` | V1_8_R1 (1.8 - 1.8.2) | V26_3 |  | `blindness` | 15 |
@@ -90,24 +100,19 @@ En yeni adıyla; "Eski adlar" en yeniden eskiye, sunucuda bu sırayla aranır.
 | `WIND_CHARGED` | V1_20_R4 (1.20.5 - 1.20.6) | V26_3 |  | `wind_charged` | 36 |
 | `BREATH_OF_THE_NAUTILUS` | V1_21_R7 (1.21.11) | V26_3 |  | `breath_of_the_nautilus` | 40 |
 
-## İksir türleri
+## Potion types
 
-| Sürümler | Sistem | İksir eşyası |
-|---|---|---|
-| 1.8 | Enum | `POTION` + veri değeri (`Potion` sınıfı hesaplar; splash da bir bit) |
-| 1.9 - 1.20.1 | Enum | `POTION` / `SPLASH_POTION` / `LINGERING_POTION` + `PotionMeta#setBasePotionData(PotionData(tür, uzun, güçlü))` |
-| 1.20.2 - 1.20.4 | Uzun / güçlü türler kendi sabitleri oldu (`LONG_SWIFTNESS`, `STRONG_SWIFTNESS`) | `PotionMeta#setBasePotionType` |
-| 1.20.5 - 26.3 | Sabitler Minecraft'ın adlarını aldı (`SWIFTNESS`, `LEAPING` ...); `Potion` sınıfı kalktı | aynı |
+| Versions | System |
+|---|---|
+| 1.8 - 1.20.1 | Enum; long / strong are flags of the item |
+| 1.20.2 - 1.20.4 | Long / strong types become constants (`LONG_SWIFTNESS`, `STRONG_SWIFTNESS`) |
+| 1.20.5 - 26.3 | Constants take Minecraft's names (`SWIFTNESS`, `LEAPING` ...); the `Potion` class is gone |
 
-`EranoPotionType` bugünkü adıyla (`LONG_SWIFTNESS`) her sürümde eşya verir: 1.20.2 öncesinde ana tür (`SWIFTNESS`,
-o sürümde `SPEED`) ve uzun / güçlü bayrağıyla.
+### Renames
 
-### İsim değişiklikleri
+From CraftBukkit `legacy/FieldRename.java` `POTION_TYPE_DATA`, each checked against the dumps.
 
-CraftBukkit `legacy/FieldRename.java` `POTION_TYPE_DATA`; her biri dökümlerde doğrulandı (eski ad, yeninin geldiği
-revizyonda kayboluyor).
-
-| Eski ad | Yeni ad | Revizyon |
+| Old name | New name | Revision |
 |---|---|---|
 | `JUMP` | `LEAPING` | V1_20_R4 (1.20.5 - 1.20.6) |
 | `SPEED` | `SWIFTNESS` | V1_20_R4 (1.20.5 - 1.20.6) |
@@ -115,20 +120,20 @@ revizyonda kayboluyor).
 | `INSTANT_DAMAGE` | `HARMING` | V1_20_R4 (1.20.5 - 1.20.6) |
 | `REGEN` | `REGENERATION` | V1_20_R4 (1.20.5 - 1.20.6) |
 
-### Revizyon revizyon
+### Changes per revision
 
-| Geçiş | Eklenen | Kaldırılan |
+| Change | Added | Removed |
 |---|---|---|
 | V1_8_R3 → V1_9_R1 (1.9 - 1.9.3) | `AWKWARD`, `LUCK`, `MUNDANE`, `THICK`, `UNCRAFTABLE` |  |
 | V1_12_R1 → V1_13_R1 (1.13) | `SLOW_FALLING`, `TURTLE_MASTER` |  |
 | V1_20_R1 → V1_20_R2 (1.20.2) | `LONG_FIRE_RESISTANCE`, `LONG_INVISIBILITY`, `LONG_LEAPING`, `LONG_NIGHT_VISION`, `LONG_POISON`, `LONG_REGENERATION`, `LONG_SLOWNESS`, `LONG_SLOW_FALLING`, `LONG_STRENGTH`, `LONG_SWIFTNESS`, `LONG_TURTLE_MASTER`, `LONG_WATER_BREATHING`, `LONG_WEAKNESS`, `STRONG_HARMING`, `STRONG_HEALING`, `STRONG_LEAPING`, `STRONG_POISON`, `STRONG_REGENERATION`, `STRONG_SLOWNESS`, `STRONG_STRENGTH`, `STRONG_SWIFTNESS`, `STRONG_TURTLE_MASTER` |  |
 | V1_20_R3 → V1_20_R4 (1.20.5 - 1.20.6) | `HARMING`, `HEALING`, `INFESTED`, `LEAPING`, `OOZING`, `REGENERATION`, `SWIFTNESS`, `WEAVING`, `WIND_CHARGED` | `INSTANT_DAMAGE`, `INSTANT_HEAL`, `JUMP`, `REGEN`, `SPEED`, `UNCRAFTABLE` |
 
-### Bütün değerler
+### All values
 
-En yeni adıyla; "Eski adlar" en yeniden eskiye, sunucuda bu sırayla aranır.
+By newest name; older names newest first, tried on a server in this order.
 
-| Ad | İlk revizyon | Son revizyon | Eski adlar | Anahtar |
+| Name | First revision | Last revision | Older names | Key |
 |---|---|---|---|---|
 | `FIRE_RESISTANCE` | V1_8_R1 (1.8 - 1.8.2) | V26_3 |  | `fire_resistance` |
 | `HARMING` | V1_8_R1 (1.8 - 1.8.2) | V26_3 | `INSTANT_DAMAGE` | `harming` |

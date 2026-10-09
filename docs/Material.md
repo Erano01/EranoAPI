@@ -1,42 +1,40 @@
-# Materyaller (`org.bukkit.Material`), 1.8 - 26.3
+# Materials (`org.bukkit.Material`), 1.8 - 26.3
 
-Hangi materyal hangi sürümde var, adı ne zaman değişti, materyal sistemi kaç kez değişti. EranoAPI'nin sürümden
-bağımsız materyal katmanı (HungerGames'in EranoAPI isteği 5) bu tablolara dayanacak.
+`EranoMaterial` gives every material of the newest Minecraft by its newest name on every server from 1.8:
 
-## Yöntem ve kaynaklar
+| Server | What `EranoMaterial.RED_WOOL` is |
+|---|---|
+| 1.13+ | the server's `Material` of that name, or of its older name if it was renamed later (`SHORT_GRASS` is `GRASS` up to 1.20.2) |
+| 1.8 - 1.12.2 | the old material with its data value (`WOOL:14`); items and blocks are made with it |
 
-- **Adlar:** her NMS revizyonunun (EranoAPI'nin `Spigot/NMS/V*` modülleri, R1 / R2 / R3 ...) Spigot API'sinde
-  `Material.values()` çalıştırıldı (`Dump.java`): ad, 1.13 öncesi sayısal ID, `isLegacy`, `isBlock`, `isItem`,
-  `@Deprecated`. 36 sürüm: 1.8, 1.8.3, 1.8.8, 1.9.2, 1.9.4, 1.10.2, 1.11.2, 1.12.2, 1.13, 1.13.2, 1.14.4, 1.15.2, 1.16.1, 1.16.3, 1.16.5, 1.17.1, 1.18.1, 1.18.2, 1.19.2, 1.19.3, 1.19.4, 1.20.1, 1.20.2, 1.20.4, 1.20.6, 1.21.1, 1.21.3, 1.21.4, 1.21.5, 1.21.6, 1.21.8, 1.21.10, 1.21.11, 26.1.2, 26.2, 26.3. Tablolarda her ad, ilk görüldüğü revizyon ve o revizyonun Minecraft sürümleriyle
-  yazılı (ör. `V1_20_R3 (1.20.3 - 1.20.4)`).
-- **Revizyon içinde de materyal eklenebiliyor:** `V1_21_R5`'in iki sürümüne (1.21.6, 1.21.8) bakıldı ve
-  `MUSIC_DISC_LAVA_CHICKEN` 1.21.7'de gelmiş. Öteki revizyonlarda tek sürüme bakıldığı için (genelde son alt sürüm)
-  revizyonun ilk alt sürümünde olmayan bir ad gözden kaçmış olabilir; o yüzden kod, bir materyalin varlığını
-  revizyona değil çalışma anında `Material.matchMaterial`'a sorar.
-- **İsim değişiklikleri:** CraftBukkit'in `util/Commodore.java`'sı (eski API'yle yazılmış plugin'lerin bytecode'unda
-  eski adı yeniyle değiştirir) ve hangi güncelleme commit'iyle girdikleri (`git log -S`); her biri dökümlerle
-  doğrulandı (eski ad kaybolup aynı geçişte yeni ad geliyor).
-- **1.13 flattening:** 1.13.2 sunucusunun kendi `CraftLegacy.fromLegacy`'si, her eski ad için 0 - 15 veri değeriyle
-  çağrıldı (`Legacy.java`; Minecraft'ın veri dönüştürücüsü). Sunucu başlatılmadı, sadece sınıfları kullanıldı.
-- Hepsi `scripts/material-report/` ile yeniden üretilir (yeni bir Minecraft sürümünde de).
+```java
+ItemStack wool = EranoMaterial.RED_WOOL.parseItem(16);
+EranoMaterial.match("WOOL:14");                 // also "minecraft:red_wool", "WOOD_SWORD", "A|B"
+EranoMaterial.of(player.getItemInHand());       // data value included on 1.8
+EranoMaterial.GRANITE.setType(block);           // STONE:1 on 1.8
+```
 
-## Materyal sistemi kaç kez değişti
+The rest of this page is the data it is generated from (`scripts/material-report/run.sh`):
 
-| # | Sürümler | Sistem | Son görüntüsü |
-|---|---|---|---|
-| 1 | 1.8 - 1.12.2 | **Sayısal ID + veri değeri.** `Material` bir tür ailesi: `WOOL`, türü veri değerinde (`WOOL:14` kırmızı); ayrıntı `MaterialData` ile. Aynı ad hem blok hem eşya. | 1.12.2: 463 ad (Ek A) |
-| 2 | 1.13 - 26.3 | **Flattening.** Her tür kendi adı (`RED_WOOL`); veri değeri yok, blok durumu `BlockData`'da. Eski 463 ad `LEGACY_` önekiyle duruyor, hepsi `@Deprecated`; `plugin.yml`'de `api-version` olmayan plugin'lerin eski adları sunucu tarafından bunlara çevrilir. | 26.3: 1815 ad (+ 463 `LEGACY_`) (Ek B) |
-| 3 | 1.20.6 - 26.3 | **`ItemType` / `BlockType`** arayüzleri eklendi (Registry tabanlı, deneysel); `Material` kaldırılmadı, deprecated değil, hâlâ enum. Sistem 2'nin yanında. | 26.3: `Material` enum + `ItemType` / `BlockType` |
+- **Names:** `Material.values()` of every NMS revision's Spigot API, 36 versions (1.8, 1.8.3, 1.8.8, 1.9.2, 1.9.4, 1.10.2, 1.11.2, 1.12.2, 1.13, 1.13.2, 1.14.4, 1.15.2, 1.16.1, 1.16.3, 1.16.5, 1.17.1, 1.18.1, 1.18.2, 1.19.2, 1.19.3, 1.19.4, 1.20.1, 1.20.2, 1.20.4, 1.20.6, 1.21.1, 1.21.3, 1.21.4, 1.21.5, 1.21.6, 1.21.8, 1.21.10, 1.21.11, 26.1.2, 26.2, 26.3).
+- **Renames:** CraftBukkit's `util/Commodore.java`, each checked against the dumps.
+- **1.13 flattening:** the 1.13.2 server's own `CraftLegacy.fromLegacy`, called for every old name with data 0 - 15
+  (no server started, only its classes).
 
-Yani asıl kırılma bir kez oldu: **1.13**. Sonrasında sistem aynı kaldı; sadece tek tek adlar değişti (aşağıda 14 ad)
-ve her sürümde yeni materyaller eklendi. 1.12.2'ye kadar hiçbir ad değişmedi; sadece `LOCKED_CHEST` (1.8, ID 95,
-1.7'den kalma; 95 artık `STAINED_GLASS`) 1.8.3'te API'den çıkarıldı.
+## Material systems
 
-`isItem()` 1.8 - 1.11'de API'de yok (dökümlerde boş).
+| Versions | System |
+|---|---|
+| 1.8 - 1.12.2 | **Numeric id + data value.** A `Material` is a family (`WOOL`); the kind is the data value (`WOOL:14` = red). 463 names. |
+| 1.13 - 26.3 | **Flattening.** Every kind has its own name (`RED_WOOL`), block state in `BlockData`. The 463 old names stay with a `LEGACY_` prefix. 1815 names today. |
+| 1.20.6 - 26.3 | `ItemType` / `BlockType` registries added next to `Material` (still an enum, not deprecated). |
 
-## Revizyon revizyon değişiklikler
+The only real break is 1.13; after it only single names changed (14, below). Up to 1.12.2 no name changed;
+`LOCKED_CHEST` was removed in 1.8.3.
 
-| Geçiş | Eklenen | Kaldırılan | Kaldırılanlar |
+## Changes per revision
+
+| Change | Added | Removed | Removed names |
 |---|---|---|---|
 | V1_8_R1 → V1_8_R2 (1.8.3) | 0 | 1 | `LOCKED_CHEST` |
 | V1_8_R2 → V1_8_R3 (1.8.4 - 1.8.9) | 0 | 0 |  |
@@ -66,22 +64,22 @@ ve her sürümde yeni materyaller eklendi. 1.12.2'ye kadar hiçbir ad değişmed
 | V1_21_R2 → V1_21_R3 (1.21.4) | 12 | 0 |  |
 | V1_21_R3 → V1_21_R4 (1.21.5) | 11 | 0 |  |
 | V1_21_R4 → V1_21_R5 (1.21.6 - 1.21.8) | 19 | 0 |  |
-| V1_21_R5 1.21.6 → 1.21.8 (aynı revizyon) | 1 | 0 | +`MUSIC_DISC_LAVA_CHICKEN` |
+| V1_21_R5 1.21.6 → 1.21.8 (same revision) | 1 | 0 | +`MUSIC_DISC_LAVA_CHICKEN` |
 | V1_21_R5 → V1_21_R6 (1.21.9 - 1.21.10) | 74 | 1 | `CHAIN` → `IRON_CHAIN` |
 | V1_21_R6 → V1_21_R7 (1.21.11) | 17 | 0 |  |
 | V1_21_R7 → V26_1 (26.1.x) | 2 | 0 |  |
 | V26_1 → V26_2 (26.2.x) | 31 | 0 |  |
 | V26_2 → V26_3 (26.3+) | 124 | 0 |  |
-| V1_12_R1 → V1_13_R1 (1.13) | flattening | flattening | 1.12.2'nin 463 adı `LEGACY_` oldu, yerine 865 yeni ad (aşağıda) |
+| V1_12_R1 → V1_13_R1 (1.13) | flattening | flattening | 1.12.2's 463 names became `LEGACY_`, 865 new names (below) |
 
-Eklenen adların tam listesi Ek B'de ("İlk revizyon" sütunu).
+Every added name is in Appendix B ("First revision").
 
-## İsim değişiklikleri (1.13 sonrası)
+## Renames after 1.13
 
-Eski ad o sürümde kaldırıldı, yenisi aynı anda geldi. `api-version`'ı eski olan plugin'ler için sunucu eski adı
-yeniye çevirir (Commodore); yeni API'yle yazılan kod eski adı bulamaz.
+The old name went away as the new one came. The server rewrites the old name only for plugins with an older
+`api-version` (Commodore).
 
-| Eski ad | Yeni ad | Minecraft sürümü | Revizyon | Sunucunun çevirmesi |
+| Old name | New name | Minecraft | Revision | Server rewrites it |
 |---|---|---|---|---|
 | `CACTUS_GREEN` | `GREEN_DYE` | 1.14 | V1_13_R2 → V1_14_R1 (1.14.x) | Commodore |
 | `DANDELION_YELLOW` | `YELLOW_DYE` | 1.14 | V1_13_R2 → V1_14_R1 (1.14.x) | Commodore |
@@ -90,23 +88,21 @@ yeniye çevirir (Commodore); yeni API'yle yazılan kod eski adı bulamaz.
 | `WALL_SIGN` | `OAK_WALL_SIGN` | 1.14 | V1_13_R2 → V1_14_R1 (1.14.x) | Commodore |
 | `ZOMBIE_PIGMAN_SPAWN_EGG` | `ZOMBIFIED_PIGLIN_SPAWN_EGG` | 1.16 | V1_15_R1 → V1_16_R1 (1.16 - 1.16.1) | Commodore |
 | `GRASS_PATH` | `DIRT_PATH` | 1.17 | V1_16_R3 → V1_17_R1 (1.17.x) | Commodore |
-| `POTTERY_SHARD_ARCHER` | `ARCHER_POTTERY_SHERD` | 1.20 | V1_19_R3 → V1_20_R1 (1.20 - 1.20.1) | yok (1.19.4'te deneysel) |
-| `POTTERY_SHARD_ARMS_UP` | `ARMS_UP_POTTERY_SHERD` | 1.20 | V1_19_R3 → V1_20_R1 (1.20 - 1.20.1) | yok (1.19.4'te deneysel) |
-| `POTTERY_SHARD_PRIZE` | `PRIZE_POTTERY_SHERD` | 1.20 | V1_19_R3 → V1_20_R1 (1.20 - 1.20.1) | yok (1.19.4'te deneysel) |
-| `POTTERY_SHARD_SKULL` | `SKULL_POTTERY_SHERD` | 1.20 | V1_19_R3 → V1_20_R1 (1.20 - 1.20.1) | yok (1.19.4'te deneysel) |
+| `POTTERY_SHARD_ARCHER` | `ARCHER_POTTERY_SHERD` | 1.20 | V1_19_R3 → V1_20_R1 (1.20 - 1.20.1) | none (experimental in 1.19.4) |
+| `POTTERY_SHARD_ARMS_UP` | `ARMS_UP_POTTERY_SHERD` | 1.20 | V1_19_R3 → V1_20_R1 (1.20 - 1.20.1) | none (experimental in 1.19.4) |
+| `POTTERY_SHARD_PRIZE` | `PRIZE_POTTERY_SHERD` | 1.20 | V1_19_R3 → V1_20_R1 (1.20 - 1.20.1) | none (experimental in 1.19.4) |
+| `POTTERY_SHARD_SKULL` | `SKULL_POTTERY_SHERD` | 1.20 | V1_19_R3 → V1_20_R1 (1.20 - 1.20.1) | none (experimental in 1.19.4) |
 | `GRASS` | `SHORT_GRASS` | 1.20.3 | V1_20_R2 → V1_20_R3 (1.20.3 - 1.20.4) | Commodore |
 | `SCUTE` | `TURTLE_SCUTE` | 1.20.5 | V1_20_R3 → V1_20_R4 (1.20.5 - 1.20.6) | Commodore |
 | `CHAIN` | `IRON_CHAIN` | 1.21.9 | V1_21_R5 → V1_21_R6 (1.21.9 - 1.21.10) | Commodore |
 
-## 1.13 flattening: eski ad + veri değeri → yeni ad
+## 1.13 flattening: old name + data value → new name
 
-1.12.2'de `AD:veri` olarak yazılan her şeyin 1.13'te neye dönüştüğü (1.13.2 sunucusunun kendi dönüştürücüsü). Sadece
-anlamı olan veri değerleri var: bir türü (renk, ağaç, taş çeşidi) seçenler; eşyalarda hasar, bloklarda yön / durum gibi
-türü değiştirmeyen değerler aynı sonuca gittiği için tekrar yazılmadı. "Bugün" sütunu 1.13 sonrası isim
-değişiklikleri uygulanmış hali (26.3). "Blok olarak" sadece blok ve eşya karşılığı farklıysa dolu (ör. eşya
-`CHIPPED_ANVIL`, blokta veri değeri yön olduğu için `ANVIL`).
+What each 1.12.2 `NAME:data` became in 1.13 (the 1.13.2 server's own converter). Only data values that pick a kind
+(color, wood, stone type) are listed. "Today" applies the later renames. "As a block" is set only when the block
+differs from the item (item `CHIPPED_ANVIL`, block `ANVIL`, whose data value is its facing).
 
-| 1.12.2 adı | ID | Veri | 1.13 adı | Bugün (26.3) | Blok olarak |
+| 1.12.2 name | Id | Data | 1.13 name | Today (26.3) | As a block |
 |---|---|---|---|---|---|
 | `AIR` | 0 | 0 | `AIR` | = |  |
 | `STONE` | 1 | 0 | `STONE` | = |  |
@@ -865,11 +861,11 @@ değişiklikleri uygulanmış hali (26.3). "Blok olarak" sadece blok ve eşya ka
 | `RECORD_11` | 2266 | 0 | `MUSIC_DISC_11` | = |  |
 | `RECORD_12` | 2267 | 0 | `MUSIC_DISC_WAIT` | = |  |
 
-756 satır; 43 eski adın birden fazla türü var.
+756 rows; 43 old names have several kinds.
 
-## Ek A: 1.8 - 1.12.2 adları
+## Appendix A: 1.8 - 1.12.2 names
 
-| Ad | ID | İlk revizyon | Son revizyon |
+| Name | Id | First revision | Last revision |
 |---|---|---|---|
 | `AIR` | 0 | V1_8_R1 (1.8 - 1.8.2) | V1_12_R1 (1.12.x) |
 | `STONE` | 1 | V1_8_R1 (1.8 - 1.8.2) | V1_12_R1 (1.12.x) |
@@ -1336,11 +1332,11 @@ değişiklikleri uygulanmış hali (26.3). "Blok olarak" sadece blok ve eşya ka
 | `RECORD_11` | 2266 | V1_8_R1 (1.8 - 1.8.2) | V1_12_R1 (1.12.x) |
 | `RECORD_12` | 2267 | V1_8_R1 (1.8 - 1.8.2) | V1_12_R1 (1.12.x) |
 
-## Ek B: 1.13 - 26.3 adları
+## Appendix B: 1.13 - 26.3 names
 
-`LEGACY_` adları hariç. Son revizyonu `V26_3` olmayanlar kaldırıldı (Not sütununda yerine gelen).
+Without `LEGACY_` names. A last revision other than `V26_3` means removed (its successor in Note).
 
-| Ad | İlk revizyon | Son revizyon | Not |
+| Name | First revision | Last revision | Note |
 |---|---|---|---|
 | `ABANDONED_CAMP_MAP` | V26_3 (26.3+) | V26_3 |  |
 | `ACACIA_BOAT` | V1_13_R1 (1.13) | V26_3 |  |
@@ -3171,16 +3167,3 @@ değişiklikleri uygulanmış hali (26.3). "Blok olarak" sadece blok ve eşya ka
 | `ZOMBIE_VILLAGER_SPAWN_EGG` | V1_13_R1 (1.13) | V26_3 |  |
 | `ZOMBIE_WALL_HEAD` | V1_13_R1 (1.13) | V26_3 |  |
 | `ZOMBIFIED_PIGLIN_SPAWN_EGG` | V1_16_R1 (1.16 - 1.16.1) | V26_3 | ← `ZOMBIE_PIGMAN_SPAWN_EGG` |
-
-## EranoAPI'de kullanımı
-
-`me.erano.com.api.material.EranoMaterial` (Core) bu tablolardan üretildi (`scripts/material-report/generate.py`:
-enum'un sabitleri, `eranoapi/material/materials.tsv` ve `legacy.tsv`). Çalışması:
-1. **1.13+ sunucuda:** yeni ad doğrudan `Material`; eski bir yeni ad (`GRASS`, `CHAIN` ...) verilirse yukarıdaki
-   isim değişikliği tablosuyla bugünkü ada çevrilir, yeni bir ad eski sunucuda yoksa (Ek B, "İlk revizyon") eskisine.
-2. **1.8 - 1.12.2 sunucuda:** yeni ad (`RED_WOOL`) flattening tablosuyla eski ad + veri değerine (`WOOL:14`)
-   çevrilir, `ItemStack(material, amount, data)` ile verilir; tabloda olmayan ve o sürümde de olmayan (Ek A) ad
-   bulunamaz.
-3. Tablolar kod içine üretilmiş veri olarak girer (bu betiklerden), elle yazılmaz. Sunucunun 1.8 - 1.12 mi olduğu
-   `Material` enum'unda `LEGACY_AIR` olup olmamasından anlaşılır (sunucusuz testlerde de doğru).
-
