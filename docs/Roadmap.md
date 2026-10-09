@@ -6,7 +6,7 @@ What EranoAPI doesn't have yet, roughly in order.
 |---|---|---|
 | Item tags | `set` / `get` a value on an `ItemStack` | PDC on 1.14+, NBT via NMS before |
 | World templates | Copy a world from a template off the main thread, save it back, atomically | Core |
-| Comment-keeping yml writer | Update single values or add missing keys without losing comments and order | Common |
+| Comment-keeping yml writer | Set single values without losing comments (adding missing keys is done: `YamlUpdate`); renamed keys | Common |
 | Scoreboards | Long sidebar lines (16-char limit before 1.13), name tag prefix / suffix / color per player | Core |
 | Economy | `PlayerCreditRepository` with amounts, async, atomic transfers; yml, Vault and MySQL backends | Core |
 | Proxy | `sendToServer(player, server)` over the `BungeeCord` channel | Core |

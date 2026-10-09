@@ -25,9 +25,21 @@ A service never fails on a version it doesn't cover: `isSupported()` is `false` 
 
 | Module | What |
 |---|---|
-| `EranoAPI-Common` | Platform-free contracts: `MinecraftVersion`, `VersionRange`, versioned service selection, `ClientNetwork` / `ServerNetwork` |
+| `EranoAPI-Common` | Platform-free contracts: `MinecraftVersion`, `VersionRange`, versioned service selection, `ClientNetwork` / `ServerNetwork`; `YamlUpdate` (below) |
 | `EranoAPI-Forge`, `EranoAPI-Fabric` | One jar per Minecraft version (1.21.11, 26.1.2, 26.3), same API: plugin channels for client mods |
 | `EranoAPI-Cluster` | A minigame network's shared state over MySQL or Redis: arenas, joins with seat reservation, Quick Join, locks. [Cluster/README.md](../Cluster/README.md) |
+
+## Updating a plugin's yml files
+
+`YamlUpdate.addMissing(current, bundled, userOwned)` (Common, plain Java): after a plugin update, every key the new
+bundled file has and the server's file doesn't is added with its comments, next to the key it follows in the bundled
+file. The server's values, comments, order and own entries stay line for line; `userOwned` paths (a kits or maps
+section) get no bundled entries. Works on the text, so comments survive on 1.8 too.
+
+```java
+YamlUpdate.Result result = YamlUpdate.addMissing(serverFile, bundledFile, Arrays.asList("kits"));
+if (result.changed()) { /* back up, write result.text(), log result.added() */ }
+```
 
 ## More
 
