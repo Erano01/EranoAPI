@@ -37,13 +37,13 @@ Group: `io.github.erano01`. Coordinates are case sensitive.
 <dependency>
   <groupId>io.github.erano01</groupId>
   <artifactId>EranoAPI-Spigot</artifactId>
-  <version>1.0.0-alpha.2</version>
+  <version>1.0.0-alpha.3</version>
   <scope>provided</scope>
 </dependency>
 ```
 
 ```kotlin
-compileOnly("io.github.erano01:EranoAPI-Spigot:1.0.0-alpha.2")
+compileOnly("io.github.erano01:EranoAPI-Spigot:1.0.0-alpha.3")
 ```
 
 Add `depend: [EranoAPI]` to your `plugin.yml`; the EranoAPI plugin provides the classes at runtime.
@@ -54,11 +54,11 @@ The version is `<EranoAPI version>+<Minecraft version>`:
 
 ```kotlin
 // Fabric
-modImplementation("io.github.erano01:EranoAPI-Fabric:1.0.0-alpha.2+26.3")
-include("io.github.erano01:EranoAPI-Fabric:1.0.0-alpha.2+26.3")      // jar-in-jar, optional
+modImplementation("io.github.erano01:EranoAPI-Fabric:1.0.0-alpha.3+26.3")
+include("io.github.erano01:EranoAPI-Fabric:1.0.0-alpha.3+26.3")      // jar-in-jar, optional
 
 // Forge
-implementation("io.github.erano01:EranoAPI-Forge:1.0.0-alpha.2+26.3")
+implementation("io.github.erano01:EranoAPI-Forge:1.0.0-alpha.3+26.3")
 ```
 
 EranoAPI-Forge already contains EranoAPI-Common's classes; don't add EranoAPI-Common separately on

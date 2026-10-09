@@ -5,7 +5,7 @@
 	<parent>
         <groupId>io.github.erano01</groupId>
         <artifactId>EranoAPI-NMS</artifactId>
-        <version>1.0.0-alpha.3-SNAPSHOT</version>
+        <version>1.0.0-alpha.3</version>
     </parent>
 	<artifactId>V1_18_R2</artifactId>
 	

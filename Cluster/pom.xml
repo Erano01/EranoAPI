@@ -6,7 +6,7 @@
     <parent>
         <groupId>io.github.erano01</groupId>
         <artifactId>EranoAPI</artifactId>
-        <version>1.0.0-alpha.3-SNAPSHOT</version>
+        <version>1.0.0-alpha.3</version>
     </parent>
 
     <!-- What the servers of a minigame network know about each other, over MySQL / MariaDB or Redis.
