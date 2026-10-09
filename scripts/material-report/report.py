@@ -120,13 +120,15 @@ for n,e in sorted(tpost.items()):
 w("""
 ## EranoAPI'de kullanımı
 
-Materyal katmanı için gereken her şey burada:
+`me.erano.com.api.material.EranoMaterial` (Core) bu tablolardan üretildi (`scripts/material-report/generate.py`:
+enum'un sabitleri, `eranoapi/material/materials.tsv` ve `legacy.tsv`). Çalışması:
 1. **1.13+ sunucuda:** yeni ad doğrudan `Material`; eski bir yeni ad (`GRASS`, `CHAIN` ...) verilirse yukarıdaki
    isim değişikliği tablosuyla bugünkü ada çevrilir, yeni bir ad eski sunucuda yoksa (Ek B, "İlk revizyon") eskisine.
 2. **1.8 - 1.12.2 sunucuda:** yeni ad (`RED_WOOL`) flattening tablosuyla eski ad + veri değerine (`WOOL:14`)
    çevrilir, `ItemStack(material, amount, data)` ile verilir; tabloda olmayan ve o sürümde de olmayan (Ek A) ad
    bulunamaz.
-3. Tablolar kod içine üretilmiş veri olarak girer (bu betiklerden), elle yazılmaz.
+3. Tablolar kod içine üretilmiş veri olarak girer (bu betiklerden), elle yazılmaz. Sunucunun 1.8 - 1.12 mi olduğu
+   `Material` enum'unda `LEGACY_AIR` olup olmamasından anlaşılır (sunucusuz testlerde de doğru).
 """)
 open(sys.argv[1],'w').write('\n'.join(L)+'\n')
 print('lines',len(L))

@@ -723,6 +723,46 @@ değişiklikleri uygulanmış hali (26.3). "Blok olarak" sadece blok ve eşya ka
 | `MONSTER_EGG` | 383 | 4 | `ELDER_GUARDIAN_SPAWN_EGG` | = |  |
 | `MONSTER_EGG` | 383 | 5 | `WITHER_SKELETON_SPAWN_EGG` | = |  |
 | `MONSTER_EGG` | 383 | 6 | `STRAY_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 23 | `HUSK_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 27 | `ZOMBIE_VILLAGER_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 28 | `SKELETON_HORSE_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 29 | `ZOMBIE_HORSE_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 31 | `DONKEY_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 32 | `MULE_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 34 | `EVOKER_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 35 | `VEX_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 36 | `VINDICATOR_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 50 | `CREEPER_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 51 | `SKELETON_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 52 | `SPIDER_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 54 | `ZOMBIE_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 55 | `SLIME_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 56 | `GHAST_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 57 | `ZOMBIE_PIGMAN_SPAWN_EGG` | `ZOMBIFIED_PIGLIN_SPAWN_EGG` |  |
+| `MONSTER_EGG` | 383 | 58 | `ENDERMAN_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 59 | `CAVE_SPIDER_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 60 | `SILVERFISH_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 61 | `BLAZE_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 62 | `MAGMA_CUBE_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 65 | `BAT_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 66 | `WITCH_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 67 | `ENDERMITE_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 68 | `GUARDIAN_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 69 | `SHULKER_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 91 | `SHEEP_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 92 | `COW_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 93 | `CHICKEN_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 94 | `SQUID_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 95 | `WOLF_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 96 | `MOOSHROOM_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 98 | `OCELOT_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 100 | `HORSE_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 101 | `RABBIT_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 102 | `POLAR_BEAR_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 103 | `LLAMA_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 105 | `PARROT_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 120 | `VILLAGER_SPAWN_EGG` | = |  |
+| `MONSTER_EGG` | 383 | 255 | `TURTLE_SPAWN_EGG` | = |  |
 | `EXP_BOTTLE` | 384 | 0 | `EXPERIENCE_BOTTLE` | = |  |
 | `FIREBALL` | 385 | 0 | `FIRE_CHARGE` | = |  |
 | `BOOK_AND_QUILL` | 386 | 0 | `WRITABLE_BOOK` | = |  |
@@ -825,7 +865,7 @@ değişiklikleri uygulanmış hali (26.3). "Blok olarak" sadece blok ve eşya ka
 | `RECORD_11` | 2266 | 0 | `MUSIC_DISC_11` | = |  |
 | `RECORD_12` | 2267 | 0 | `MUSIC_DISC_WAIT` | = |  |
 
-716 satır; 43 eski adın birden fazla türü var.
+756 satır; 43 eski adın birden fazla türü var.
 
 ## Ek A: 1.8 - 1.12.2 adları
 
@@ -3134,11 +3174,13 @@ değişiklikleri uygulanmış hali (26.3). "Blok olarak" sadece blok ve eşya ka
 
 ## EranoAPI'de kullanımı
 
-Materyal katmanı için gereken her şey burada:
+`me.erano.com.api.material.EranoMaterial` (Core) bu tablolardan üretildi (`scripts/material-report/generate.py`:
+enum'un sabitleri, `eranoapi/material/materials.tsv` ve `legacy.tsv`). Çalışması:
 1. **1.13+ sunucuda:** yeni ad doğrudan `Material`; eski bir yeni ad (`GRASS`, `CHAIN` ...) verilirse yukarıdaki
    isim değişikliği tablosuyla bugünkü ada çevrilir, yeni bir ad eski sunucuda yoksa (Ek B, "İlk revizyon") eskisine.
 2. **1.8 - 1.12.2 sunucuda:** yeni ad (`RED_WOOL`) flattening tablosuyla eski ad + veri değerine (`WOOL:14`)
    çevrilir, `ItemStack(material, amount, data)` ile verilir; tabloda olmayan ve o sürümde de olmayan (Ek A) ad
    bulunamaz.
-3. Tablolar kod içine üretilmiş veri olarak girer (bu betiklerden), elle yazılmaz.
+3. Tablolar kod içine üretilmiş veri olarak girer (bu betiklerden), elle yazılmaz. Sunucunun 1.8 - 1.12 mi olduğu
+   `Material` enum'unda `LEGACY_AIR` olup olmamasından anlaşılır (sunucusuz testlerde de doğru).
 

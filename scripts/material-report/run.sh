@@ -26,3 +26,4 @@ done
 "$JDK8/bin/java" -cp ".:$LEGACY_JAR" Legacy 2>/dev/null | sed 's/^\[STDOUT\]: //' > legacy-1.13.2.tsv
 python3 "$HERE/analyze.py" > /dev/null
 python3 "$HERE/report.py" "$ROOT/docs/Material.md"
+python3 "$HERE/generate.py" "$ROOT/Spigot/Core"

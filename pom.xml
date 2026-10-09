@@ -36,9 +36,8 @@
 	<modules>
 		<module>Common</module>
 		<module>Cluster</module>
-		<module>Spigot/Core</module>
-		<module>Spigot/NMS</module>
-		<module>Spigot/Dist</module>
+		<!-- Core, NMS and Dist (Spigot/pom.xml). -->
+		<module>Spigot</module>
 	</modules>
 
 	<!-- Properties defined here are inherited by all modules -->

@@ -1,0 +1,31 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.github.erano01</groupId>
+        <artifactId>EranoAPI</artifactId>
+        <version>1.0.0-alpha.3-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    <artifactId>EranoAPI-Spigot-Build</artifactId>
+    <packaging>pom</packaging>
+    <name>EranoAPI Spigot</name>
+    <description>The Spigot side of EranoAPI: Core (the API), NMS (one module per revision) and Dist (the plugin jar).</description>
+
+    <!-- Only groups the Spigot modules (mvn -pl Spigot -amd builds them all). Their parent stays the root pom, so
+         nothing here is published and the published POMs don't change. -->
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+        <maven.source.skip>true</maven.source.skip>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
+        <gpg.skip>true</gpg.skip>
+    </properties>
+
+    <modules>
+        <module>Core</module>
+        <module>NMS</module>
+        <module>Dist</module>
+    </modules>
+
+</project>
