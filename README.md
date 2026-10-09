@@ -35,9 +35,22 @@ EranoAPI/
 
 ## Usage
 
-Group: `io.github.erano01`. Coordinates are case sensitive.
+Group `io.github.erano01`, on [Maven Central](https://central.sonatype.com/namespace/io.github.erano01) (no extra
+repository needed). Coordinates are case sensitive.
 
-### Spigot
+| Artifact | For | Version | Scope |
+|---|---|---|---|
+| `EranoAPI-Spigot` | Spigot / Paper plugins | `1.0.0-alpha.3` | provided: the EranoAPI plugin supplies it |
+| `EranoAPI-Common` | anything (plain Java 8): `MinecraftVersion`, `YamlUpdate`, plugin channel contracts | `1.0.0-alpha.3` | already inside `EranoAPI-Spigot` / `-Forge` / `-Fabric` |
+| `EranoAPI-Cluster` | minigame servers, hubs, proxies (plain Java 8) | `1.0.0-alpha.3` | bundled into your jar |
+| `EranoAPI-Fabric` | Fabric mods | `1.0.0-alpha.3+<mc>` | |
+| `EranoAPI-Forge` | Forge mods | `1.0.0-alpha.3+<mc>` | |
+
+`<mc>` is `1.21.11`, `26.1.2` or `26.3`.
+
+### Spigot / Paper plugin
+
+Maven:
 
 ```xml
 <dependency>
@@ -48,27 +61,239 @@ Group: `io.github.erano01`. Coordinates are case sensitive.
 </dependency>
 ```
 
-```kotlin
-compileOnly("io.github.erano01:EranoAPI-Spigot:1.0.0-alpha.3")
-```
-
-Add `depend: [EranoAPI]` to your `plugin.yml`; the EranoAPI plugin provides the classes at runtime.
-
-### Fabric / Forge
-
-The version is `<EranoAPI version>+<Minecraft version>`:
+Gradle (Kotlin):
 
 ```kotlin
-// Fabric
-modImplementation("io.github.erano01:EranoAPI-Fabric:1.0.0-alpha.3+26.3")
-include("io.github.erano01:EranoAPI-Fabric:1.0.0-alpha.3+26.3")      // jar-in-jar, optional
-
-// Forge
-implementation("io.github.erano01:EranoAPI-Forge:1.0.0-alpha.3+26.3")
+dependencies {
+    compileOnly("io.github.erano01:EranoAPI-Spigot:1.0.0-alpha.3")
+}
 ```
 
-EranoAPI-Forge already contains EranoAPI-Common's classes; don't add EranoAPI-Common separately on
-Forge (Forge loads mods as JPMS modules and the same package from two jars fails to load).
+Gradle (Groovy):
+
+```groovy
+dependencies {
+    compileOnly 'io.github.erano01:EranoAPI-Spigot:1.0.0-alpha.3'
+}
+```
+
+`plugin.yml`:
+
+```yaml
+depend: [EranoAPI]
+```
+
+Server owners install the plugin jar ([SpigotMC](https://www.spigotmc.org/resources/eranoapi.139499/) or
+[GitHub Releases](https://github.com/Erano01/EranoAPI/releases)); it provides the classes at runtime, so don't shade
+`EranoAPI-Spigot`.
+
+### Common (plain Java)
+
+Only needed on its own outside Spigot / Forge / Fabric (a proxy plugin, a tool); the platform artifacts already
+contain it.
+
+Maven:
+
+```xml
+<dependency>
+  <groupId>io.github.erano01</groupId>
+  <artifactId>EranoAPI-Common</artifactId>
+  <version>1.0.0-alpha.3</version>
+</dependency>
+```
+
+Gradle (Kotlin):
+
+```kotlin
+dependencies {
+    implementation("io.github.erano01:EranoAPI-Common:1.0.0-alpha.3")
+}
+```
+
+Gradle (Groovy):
+
+```groovy
+dependencies {
+    implementation 'io.github.erano01:EranoAPI-Common:1.0.0-alpha.3'
+}
+```
+
+### Cluster (plain Java)
+
+Not part of the EranoAPI plugin: bundle it into your jar (its dependencies come along transitively) and relocate it
+with Jedis and its libraries (commons-pool2, Gson, org.json), HikariCP, the MariaDB driver and SLF4J, so two plugins
+bundling different versions don't clash.
+
+Maven (with the shade plugin):
+
+```xml
+<dependency>
+  <groupId>io.github.erano01</groupId>
+  <artifactId>EranoAPI-Cluster</artifactId>
+  <version>1.0.0-alpha.3</version>
+</dependency>
+
+<!-- build/plugins -->
+<plugin>
+  <groupId>org.apache.maven.plugins</groupId>
+  <artifactId>maven-shade-plugin</artifactId>
+  <version>3.6.0</version>
+  <executions>
+    <execution>
+      <phase>package</phase>
+      <goals><goal>shade</goal></goals>
+      <configuration>
+        <relocations>
+          <relocation>
+            <pattern>me.erano.com.api.cluster</pattern>
+            <shadedPattern>your.plugin.libs.cluster</shadedPattern>
+          </relocation>
+          <relocation>
+            <pattern>redis.clients</pattern>
+            <shadedPattern>your.plugin.libs.jedis</shadedPattern>
+          </relocation>
+          <relocation>
+            <pattern>org.apache.commons.pool2</pattern>
+            <shadedPattern>your.plugin.libs.pool2</shadedPattern>
+          </relocation>
+          <relocation>
+            <pattern>com.google.gson</pattern>
+            <shadedPattern>your.plugin.libs.gson</shadedPattern>
+          </relocation>
+          <relocation>
+            <pattern>org.json</pattern>
+            <shadedPattern>your.plugin.libs.json</shadedPattern>
+          </relocation>
+          <relocation>
+            <pattern>com.zaxxer.hikari</pattern>
+            <shadedPattern>your.plugin.libs.hikari</shadedPattern>
+          </relocation>
+          <relocation>
+            <pattern>org.mariadb.jdbc</pattern>
+            <shadedPattern>your.plugin.libs.mariadb</shadedPattern>
+          </relocation>
+          <relocation>
+            <pattern>org.slf4j</pattern>
+            <shadedPattern>your.plugin.libs.slf4j</shadedPattern>
+          </relocation>
+        </relocations>
+      </configuration>
+    </execution>
+  </executions>
+</plugin>
+```
+
+Gradle (Kotlin, with [Shadow](https://gradleup.com/shadow/)):
+
+```kotlin
+plugins {
+    id("com.gradleup.shadow") version "<latest>"
+}
+
+dependencies {
+    implementation("io.github.erano01:EranoAPI-Cluster:1.0.0-alpha.3")
+}
+
+tasks.shadowJar {
+    relocate("me.erano.com.api.cluster", "your.plugin.libs.cluster")
+    relocate("redis.clients", "your.plugin.libs.jedis")
+    relocate("org.apache.commons.pool2", "your.plugin.libs.pool2")
+    relocate("com.google.gson", "your.plugin.libs.gson")
+    relocate("org.json", "your.plugin.libs.json")
+    relocate("com.zaxxer.hikari", "your.plugin.libs.hikari")
+    relocate("org.mariadb.jdbc", "your.plugin.libs.mariadb")
+    relocate("org.slf4j", "your.plugin.libs.slf4j")
+}
+```
+
+Gradle (Groovy):
+
+```groovy
+plugins {
+    id 'com.gradleup.shadow' version '<latest>'
+}
+
+dependencies {
+    implementation 'io.github.erano01:EranoAPI-Cluster:1.0.0-alpha.3'
+}
+
+shadowJar {
+    relocate 'me.erano.com.api.cluster', 'your.plugin.libs.cluster'
+    relocate 'redis.clients', 'your.plugin.libs.jedis'
+    relocate 'org.apache.commons.pool2', 'your.plugin.libs.pool2'
+    relocate 'com.google.gson', 'your.plugin.libs.gson'
+    relocate 'org.json', 'your.plugin.libs.json'
+    relocate 'com.zaxxer.hikari', 'your.plugin.libs.hikari'
+    relocate 'org.mariadb.jdbc', 'your.plugin.libs.mariadb'
+    relocate 'org.slf4j', 'your.plugin.libs.slf4j'
+}
+```
+
+### Fabric mod
+
+The version is `<EranoAPI version>+<Minecraft version>`. Fabric mods are built with Gradle (Loom); `include` puts
+EranoAPI inside your mod (jar-in-jar), without it players install EranoAPI themselves.
+
+Gradle (Kotlin):
+
+```kotlin
+dependencies {
+    modImplementation("io.github.erano01:EranoAPI-Fabric:1.0.0-alpha.3+26.3")
+    include("io.github.erano01:EranoAPI-Fabric:1.0.0-alpha.3+26.3")
+}
+```
+
+Gradle (Groovy):
+
+```groovy
+dependencies {
+    modImplementation 'io.github.erano01:EranoAPI-Fabric:1.0.0-alpha.3+26.3'
+    include 'io.github.erano01:EranoAPI-Fabric:1.0.0-alpha.3+26.3'
+}
+```
+
+Maven (coordinates only, e.g. for tooling; Loom itself is Gradle):
+
+```xml
+<dependency>
+  <groupId>io.github.erano01</groupId>
+  <artifactId>EranoAPI-Fabric</artifactId>
+  <version>1.0.0-alpha.3+26.3</version>
+</dependency>
+```
+
+### Forge mod
+
+The version is `<EranoAPI version>+<Minecraft version>`. Forge mods are built with Gradle (ForgeGradle).
+
+Gradle (Kotlin):
+
+```kotlin
+dependencies {
+    implementation("io.github.erano01:EranoAPI-Forge:1.0.0-alpha.3+26.3")
+}
+```
+
+Gradle (Groovy):
+
+```groovy
+dependencies {
+    implementation 'io.github.erano01:EranoAPI-Forge:1.0.0-alpha.3+26.3'
+}
+```
+
+Maven (coordinates only; ForgeGradle itself is Gradle):
+
+```xml
+<dependency>
+  <groupId>io.github.erano01</groupId>
+  <artifactId>EranoAPI-Forge</artifactId>
+  <version>1.0.0-alpha.3+26.3</version>
+</dependency>
+```
+
+EranoAPI-Forge already contains EranoAPI-Common's classes; don't add EranoAPI-Common separately on Forge (Forge
+loads mods as JPMS modules and the same package from two jars fails to load).
 
 ### Materials
 
@@ -106,11 +331,7 @@ ItemStack potion = EranoPotionType.LONG_SWIFTNESS.parseItem(EranoPotionType.Form
 What the servers of a minigame network know about each other: every server's arenas and the players on
 their way to one, over MySQL / MariaDB or Redis. Plain Java, for any platform's game server, hub or proxy.
 It isn't part of the EranoAPI plugin: bundle it (shade and relocate `me.erano.com.api.cluster`, Jedis,
-HikariCP, the MariaDB driver) into your plugin. See [Cluster/README.md](Cluster/README.md).
-
-```kotlin
-implementation("io.github.erano01:EranoAPI-Cluster:1.0.0-alpha.3")
-```
+HikariCP, the MariaDB driver) into your plugin: see [Usage](#cluster-plain-java) and [Cluster/README.md](Cluster/README.md).
 
 ## Building
 
