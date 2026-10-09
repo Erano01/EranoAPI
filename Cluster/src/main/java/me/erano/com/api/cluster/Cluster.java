@@ -157,8 +157,43 @@ public final class Cluster implements AutoCloseable {
     }
 
     /**
+     * Sends the player to {@code arena} of {@code server} with a seat to play, if one is free: checked and written in
+     * one atomic step, so two hubs (or menus) can't send two players to the last seat. Completes with {@code false},
+     * having written nothing, when the arena is full counting the players on their way; quick join then tries the
+     * next arena. To watch a running game use {@link #sendTo}.
+     */
+    public CompletableFuture<Boolean> reserve(final UUID player, final String server, final String arena) {
+        return run(() -> backend.reserve(player, server, arena));
+    }
+
+    /**
+     * Takes the network-wide lock {@code name} (e.g. {@code map:breeze} while a map is edited) for {@code owner} (a
+     * server name) for {@code seconds}, or renews it. Renew it before it lapses; a holder that crashed loses it after
+     * {@code seconds}. Completes with who holds it now: {@code owner} if taken, else the other holder.
+     */
+    public CompletableFuture<String> claim(final String name, final String owner, final int seconds) {
+        if (seconds < 1) {
+            throw new IllegalArgumentException("seconds must be 1 or more: " + seconds);
+        }
+        return run(() -> backend.claim(name, owner, seconds));
+    }
+
+    /** Gives the lock {@code name} up, if {@code owner} holds it. */
+    public CompletableFuture<Void> release(final String name, final String owner) {
+        return run(() -> {
+            backend.release(name, owner);
+            return null;
+        });
+    }
+
+    /** Where the player is going on {@code server}, {@code null} if nowhere; unlike {@link #arriving}, left in place. */
+    public CompletableFuture<String> pending(final UUID player, final String server) {
+        return run(() -> backend.pending(player, server));
+    }
+
+    /**
      * The arena the player arriving at {@code server} was sent to, {@code null} if none; ask when they join. Used
-     * once.
+     * once, and frees the player's seat.
      */
     public CompletableFuture<String> arriving(final UUID player, final String server) {
         return run(() -> backend.arriving(player, server));

@@ -49,5 +49,58 @@ public final class BackendContract {
         assertNull(backend.arriving(player, "hg-1"));
         backend.remove("hg-1");
         assertEquals(Collections.emptyList(), backend.arenas());
+
+        checkSeats(backend);
+        checkLocks(backend);
+    }
+
+    /** {@link Backend#claim}: one holder at a time, renewable, released only by its holder, lapsing in time. */
+    private static void checkLocks(Backend backend) throws Exception {
+        assertEquals("hg-1", backend.claim("map:breeze", "hg-1", 30));
+        assertEquals("hg-1", backend.claim("map:breeze", "hg-2", 30), "held by another");
+        assertEquals("hg-1", backend.claim("map:breeze", "hg-1", 30), "renewed by its holder");
+        backend.release("map:breeze", "hg-2");
+        assertEquals("hg-1", backend.claim("map:breeze", "hg-2", 30), "only its holder releases it");
+        backend.release("map:breeze", "hg-1");
+        assertEquals("hg-2", backend.claim("map:breeze", "hg-2", 1));
+        Thread.sleep(2100);
+        assertEquals("hg-1", backend.claim("map:breeze", "hg-1", 30), "a lock not renewed lapses");
+        backend.release("map:breeze", "hg-1");
+    }
+
+    /** {@link Backend#reserve}: the last seat goes once, a player keeps their own, arriving frees it. */
+    private static void checkSeats(Backend backend) throws Exception {
+        UUID first = UUID.randomUUID();
+        UUID second = UUID.randomUUID();
+        // 3 of 4 playing: one seat left.
+        ArenaStatus almostFull = new ArenaStatus("hungergames", "hg-5", "breeze", "STARTING_COUNTDOWN",
+                ArenaStatus.Stage.WAITING, false, 20, 3, 0, 4, true);
+        ArenaStatus running = new ArenaStatus("hungergames", "hg-5", "sg4", "BATTLE", ArenaStatus.Stage.PLAYING,
+                false, 90, 4, 0, 4, false);
+        backend.publish("hg-5", Arrays.asList(almostFull, running));
+
+        assertTrue(backend.reserve(first, "hg-5", "breeze"));
+        assertFalse(backend.reserve(second, "hg-5", "breeze"), "the last seat is taken");
+        assertTrue(backend.reserve(first, "hg-5", "breeze"), "asking again keeps the own seat");
+        assertEquals("breeze", backend.pending(first, "hg-5"));
+        assertEquals("breeze", backend.pending(first, "hg-5"), "pending leaves the join in place");
+        assertNull(backend.pending(second, "hg-5"));
+
+        // Arrived: counted as a player from the next publish on; the seat is free.
+        assertEquals("breeze", backend.arriving(first, "hg-5"));
+        assertTrue(backend.reserve(second, "hg-5", "breeze"));
+
+        assertFalse(backend.reserve(first, "hg-5", "sg4"), "no seat in a running game");
+        assertFalse(backend.reserve(first, "hg-5", "nowhere"));
+        assertFalse(backend.reserve(first, "hg-6", "breeze"));
+
+        // A seat taken elsewhere frees the old one.
+        UUID third = UUID.randomUUID();
+        ArenaStatus empty = new ArenaStatus("hungergames", "hg-5", "sg1", "STARTING_COUNTDOWN",
+                ArenaStatus.Stage.WAITING, false, 20, 0, 0, 4, true);
+        backend.publish("hg-5", Arrays.asList(almostFull, running, empty));
+        assertTrue(backend.reserve(second, "hg-5", "sg1"));
+        assertTrue(backend.reserve(third, "hg-5", "breeze"), "second's seat in breeze went with its new join");
+        backend.remove("hg-5");
     }
 }

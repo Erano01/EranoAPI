@@ -46,6 +46,7 @@ public final class MySqlBackend implements Backend {
     private final AutoCloseable closer;
     private final String arenas;
     private final String joins;
+    private final String locks;
 
     /** @param closer closes {@code pool}; {@code null} when the caller owns it */
     MySqlBackend(DataSource pool, AutoCloseable closer, String prefix) {
@@ -53,6 +54,7 @@ public final class MySqlBackend implements Backend {
         this.closer = closer;
         this.arenas = prefix + "arenas";
         this.joins = prefix + "joins";
+        this.locks = prefix + "locks";
     }
 
     /** With a connection pool of its own. */
@@ -124,6 +126,10 @@ public final class MySqlBackend implements Backend {
                         + "server VARCHAR(64) NOT NULL, "
                         + "arena VARCHAR(64) NOT NULL, "
                         + "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP)");
+                statement.executeUpdate("CREATE TABLE IF NOT EXISTS " + locks + " ("
+                        + "name VARCHAR(128) NOT NULL PRIMARY KEY, "
+                        + "owner VARCHAR(64) NOT NULL, "
+                        + "expires_at TIMESTAMP NOT NULL)");
             }
         }
     }
@@ -293,16 +299,94 @@ public final class MySqlBackend implements Backend {
 
     @Override
     public void sendTo(UUID player, String server, String arena) throws SQLException {
-        try (Connection connection = pool.getConnection();
-             PreparedStatement statement = connection.prepareStatement("INSERT INTO " + joins
-                     + " (uuid, server, arena, created_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)"
-                     + " ON DUPLICATE KEY UPDATE server = ?, arena = ?, created_at = CURRENT_TIMESTAMP")) {
+        try (Connection connection = pool.getConnection()) {
+            writeJoin(connection, player, server, arena);
+        }
+    }
+
+    private void writeJoin(Connection connection, UUID player, String server, String arena) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("INSERT INTO " + joins
+                + " (uuid, server, arena, created_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)"
+                + " ON DUPLICATE KEY UPDATE server = ?, arena = ?, created_at = CURRENT_TIMESTAMP")) {
             statement.setString(1, player.toString());
             statement.setString(2, server);
             statement.setString(3, arena);
             statement.setString(4, server);
             statement.setString(5, arena);
             statement.executeUpdate();
+        }
+    }
+
+    /**
+     * The arena's row is locked ({@code FOR UPDATE}) while its players and the fresh pending joins to it are counted
+     * and the player's join is written, so a second sender waits for the first and counts its join.
+     */
+    @Override
+    public boolean reserve(UUID player, String server, String arena) throws SQLException {
+        try (Connection connection = pool.getConnection()) {
+            boolean autoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+            try {
+                int players;
+                int max;
+                try (PreparedStatement statement = connection.prepareStatement("SELECT players, max_players FROM "
+                        + arenas + " WHERE server = ? AND arena = ? AND stage = ? AND joinable = ? AND updated_at >= ?"
+                        + " FOR UPDATE")) {
+                    statement.setString(1, server);
+                    statement.setString(2, arena);
+                    statement.setString(3, ArenaStatus.Stage.WAITING.name());
+                    statement.setBoolean(4, true);
+                    statement.setTimestamp(5, ago(connection, Cluster.FRESH_SECONDS));
+                    try (ResultSet result = statement.executeQuery()) {
+                        if (!result.next()) {
+                            connection.rollback();
+                            return false;
+                        }
+                        players = result.getInt(1);
+                        max = result.getInt(2);
+                    }
+                }
+                if (max > 0) {
+                    int coming = 0;
+                    try (PreparedStatement statement = connection.prepareStatement("SELECT COUNT(*) FROM " + joins
+                            + " WHERE server = ? AND arena = ? AND uuid <> ? AND created_at >= ?")) {
+                        statement.setString(1, server);
+                        statement.setString(2, arena);
+                        statement.setString(3, player.toString());
+                        statement.setTimestamp(4, ago(connection, Cluster.JOIN_SECONDS));
+                        try (ResultSet result = statement.executeQuery()) {
+                            result.next();
+                            coming = result.getInt(1);
+                        }
+                    }
+                    if (players + coming >= max) {
+                        connection.rollback();
+                        return false;
+                    }
+                }
+                writeJoin(connection, player, server, arena);
+                connection.commit();
+                return true;
+            } catch (SQLException e) {
+                connection.rollback();
+                throw e;
+            } finally {
+                connection.setAutoCommit(autoCommit);
+            }
+        }
+    }
+
+    @Override
+    public String pending(UUID player, String server) throws SQLException {
+        try (Connection connection = pool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(
+                     "SELECT arena FROM " + joins + " WHERE uuid = ? AND server = ? AND created_at >= ?")) {
+            statement.setString(1, player.toString());
+            statement.setString(2, server);
+            statement.setTimestamp(3, ago(connection, Cluster.JOIN_SECONDS));
+            try (ResultSet result = statement.executeQuery()) {
+                return result.next() ? result.getString(1) : null;
+            }
         }
     }
 
@@ -328,6 +412,61 @@ public final class MySqlBackend implements Backend {
             }
         }
         return arena;
+    }
+
+    @Override
+    public String claim(String name, String owner, int seconds) throws SQLException {
+        try (Connection connection = pool.getConnection()) {
+            boolean autoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+            try {
+                Timestamp now = ago(connection, 0);
+                String holder = null;
+                try (PreparedStatement statement = connection.prepareStatement(
+                        "SELECT owner FROM " + locks + " WHERE name = ? AND expires_at > ? FOR UPDATE")) {
+                    statement.setString(1, name);
+                    statement.setTimestamp(2, now);
+                    try (ResultSet result = statement.executeQuery()) {
+                        if (result.next()) {
+                            holder = result.getString(1);
+                        }
+                    }
+                }
+                if (holder != null && !holder.equals(owner)) {
+                    connection.rollback();
+                    return holder;
+                }
+                try (PreparedStatement statement = connection.prepareStatement("INSERT INTO " + locks
+                        + " (name, owner, expires_at) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE owner = ?,"
+                        + " expires_at = ?")) {
+                    Timestamp expires = new Timestamp(now.getTime() + seconds * 1000L);
+                    statement.setString(1, name);
+                    statement.setString(2, owner);
+                    statement.setTimestamp(3, expires);
+                    statement.setString(4, owner);
+                    statement.setTimestamp(5, expires);
+                    statement.executeUpdate();
+                }
+                connection.commit();
+                return owner;
+            } catch (SQLException e) {
+                connection.rollback();
+                throw e;
+            } finally {
+                connection.setAutoCommit(autoCommit);
+            }
+        }
+    }
+
+    @Override
+    public void release(String name, String owner) throws SQLException {
+        try (Connection connection = pool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(
+                     "DELETE FROM " + locks + " WHERE name = ? AND owner = ?")) {
+            statement.setString(1, name);
+            statement.setString(2, owner);
+            statement.executeUpdate();
+        }
     }
 
     @Override

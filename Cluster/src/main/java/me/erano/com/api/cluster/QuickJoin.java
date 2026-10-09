@@ -1,6 +1,8 @@
 package me.erano.com.api.cluster;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Picks the arena to play in now: the fullest one that can still be joined, so it starts soonest; between equally
@@ -11,8 +13,8 @@ public final class QuickJoin {
     private String game;
     private String server;
     private String arena;
-    private String exceptServer;
-    private String exceptArena;
+    /** {@code server/arena} of the arenas left out. */
+    private final Set<String> except = new HashSet<>();
 
     private QuickJoin() {
     }
@@ -39,10 +41,14 @@ public final class QuickJoin {
         return this;
     }
 
-    /** Not this arena (the one the player waits in already). */
+    /**
+     * Not this arena: the one the player waits in already, or one that filled up when a seat was asked for. Can be
+     * called several times; {@code null}s are ignored.
+     */
     public QuickJoin except(String server, String arena) {
-        this.exceptServer = server;
-        this.exceptArena = arena;
+        if (server != null && arena != null) {
+            except.add(server + '/' + arena);
+        }
         return this;
     }
 
@@ -54,7 +60,7 @@ public final class QuickJoin {
                     || game != null && !candidate.game().equals(game)
                     || server != null && !candidate.server().equals(server)
                     || arena != null && !candidate.arena().equalsIgnoreCase(arena)
-                    || candidate.server().equals(exceptServer) && candidate.arena().equals(exceptArena)) {
+                    || except.contains(candidate.server() + '/' + candidate.arena())) {
                 continue;
             }
             if (best == null || candidate.players() > best.players()

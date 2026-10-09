@@ -1,6 +1,7 @@
 package me.erano.com.api.cluster.redis;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -36,6 +37,9 @@ import redis.clients.jedis.Transaction;
  * {@link Cluster#FRESH_SECONDS} after the last write, so a crashed server's arenas go on their own;</li>
  * <li>{@code join:<uuid>}: where a player is going ({@code server<TAB>arena}), expiring after
  * {@link Cluster#JOIN_SECONDS};</li>
+ * <li>{@code seats:<server>:<arena>}: the players on their way there with a seat ({@link #reserve}), sorted set scored
+ * with when the seat lapses;</li>
+ * <li>{@code lock:<name>}: a lock's holder, expiring when not renewed ({@link #claim});</li>
  * <li>channel {@code arenas}: a server's name, published whenever its arenas change.</li>
  * </ul>
  * A server's arenas are replaced in one transaction, so readers never see half of them.
@@ -54,6 +58,8 @@ public final class RedisBackend implements Backend {
     private final String serverPrefix;
     private final String joinPrefix;
     private final String channel;
+    private final String seatPrefix;
+    private final String lockPrefix;
     private volatile boolean closed;
     private volatile JedisPubSub subscription;
     private Thread subscriber;
@@ -67,6 +73,8 @@ public final class RedisBackend implements Backend {
         this.serverPrefix = prefix + "server:";
         this.joinPrefix = prefix + "join:";
         this.channel = prefix + "arenas";
+        this.seatPrefix = prefix + "seats:";
+        this.lockPrefix = prefix + "lock:";
     }
 
     public static RedisBackend connect(ClusterSettings settings, Logger logger) throws ClusterException {
@@ -199,6 +207,66 @@ public final class RedisBackend implements Backend {
         }
     }
 
+    /**
+     * One script, so Redis runs it as one step: drop lapsed seats, read the arena as its server wrote it, count its
+     * players and seats, then take a seat and write the join (freeing a seat the player held elsewhere).
+     * KEYS: server hash, seats of the arena, the player's join. ARGV: arena, player, now (ms), join seconds, join
+     * value, seat prefix.
+     */
+    private static final String RESERVE = ""
+            + "redis.call('ZREMRANGEBYSCORE', KEYS[2], '-inf', ARGV[3])\n"
+            + "local value = redis.call('HGET', KEYS[1], ARGV[1])\n"
+            + "if not value then return 0 end\n"
+            + "local f = {}\n"
+            + "local from = 1\n"
+            + "while true do\n"
+            + "  local tab = string.find(value, '\\t', from, true)\n"
+            + "  if not tab then f[#f + 1] = string.sub(value, from) break end\n"
+            + "  f[#f + 1] = string.sub(value, from, tab - 1)\n"
+            + "  from = tab + 1\n"
+            + "end\n"
+            // format, game, state, stage, paused, seconds, players, spectators, max, joinable (ArenaCodec)
+            + "if f[1] ~= '1' or f[4] ~= 'WAITING' or f[10] ~= '1' then return 0 end\n"
+            + "local players = tonumber(f[7])\n"
+            + "local max = tonumber(f[9])\n"
+            + "local held = redis.call('ZSCORE', KEYS[2], ARGV[2])\n"
+            + "if not held and max > 0 and players + redis.call('ZCARD', KEYS[2]) >= max then return 0 end\n"
+            + "local old = redis.call('GET', KEYS[3])\n"
+            + "if old then\n"
+            + "  local tab = string.find(old, '\\t', 1, true)\n"
+            + "  if tab then\n"
+            + "    redis.call('ZREM', ARGV[6] .. string.sub(old, 1, tab - 1) .. ':' .. string.sub(old, tab + 1), ARGV[2])\n"
+            + "  end\n"
+            + "end\n"
+            + "local lapses = tonumber(ARGV[3]) + tonumber(ARGV[4]) * 1000\n"
+            + "redis.call('ZADD', KEYS[2], lapses, ARGV[2])\n"
+            + "redis.call('PEXPIRE', KEYS[2], tonumber(ARGV[4]) * 1000)\n"
+            + "redis.call('SET', KEYS[3], ARGV[5], 'EX', tonumber(ARGV[4]))\n"
+            + "return 1\n";
+
+    private String seatKey(String server, String arena) {
+        return seatPrefix + server + ":" + arena;
+    }
+
+    @Override
+    public boolean reserve(UUID player, String server, String arena) {
+        try (Jedis jedis = pool.getResource()) {
+            long now = now(jedis);
+            Object reserved = jedis.eval(RESERVE,
+                    Arrays.asList(serverKey(server), seatKey(server, arena), joinKey(player)),
+                    Arrays.asList(arena, player.toString(), String.valueOf(now), String.valueOf(Cluster.JOIN_SECONDS),
+                            ArenaCodec.encodeJoin(server, arena), seatPrefix));
+            return Long.valueOf(1).equals(reserved);
+        }
+    }
+
+    @Override
+    public String pending(UUID player, String server) {
+        try (Jedis jedis = pool.getResource()) {
+            return ArenaCodec.joinArena(jedis.get(joinKey(player)), server);
+        }
+    }
+
     @Override
     public String arriving(UUID player, String server) {
         try (Jedis jedis = pool.getResource()) {
@@ -207,7 +275,39 @@ public final class RedisBackend implements Backend {
             Response<String> value = transaction.get(joinKey(player));
             transaction.del(joinKey(player));
             transaction.exec();
-            return ArenaCodec.joinArena(value.get(), server);
+            String arena = ArenaCodec.joinArena(value.get(), server);
+            if (arena != null) {
+                // Arrived: the seat is the player now, counted in the arena's players.
+                jedis.zrem(seatKey(server, arena), player.toString());
+            }
+            return arena;
+        }
+    }
+
+    /** KEYS: the lock. ARGV: owner, seconds. Takes or renews it; returns who holds it. */
+    private static final String CLAIM = ""
+            + "local holder = redis.call('GET', KEYS[1])\n"
+            + "if holder and holder ~= ARGV[1] then return holder end\n"
+            + "redis.call('SET', KEYS[1], ARGV[1], 'EX', tonumber(ARGV[2]))\n"
+            + "return ARGV[1]\n";
+
+    /** KEYS: the lock. ARGV: owner. Deletes it only if owner holds it. */
+    private static final String RELEASE = ""
+            + "if redis.call('GET', KEYS[1]) == ARGV[1] then redis.call('DEL', KEYS[1]) end\n"
+            + "return 0\n";
+
+    @Override
+    public String claim(String name, String owner, int seconds) {
+        try (Jedis jedis = pool.getResource()) {
+            return String.valueOf(jedis.eval(CLAIM, Collections.singletonList(lockPrefix + name),
+                    Arrays.asList(owner, String.valueOf(seconds))));
+        }
+    }
+
+    @Override
+    public void release(String name, String owner) {
+        try (Jedis jedis = pool.getResource()) {
+            jedis.eval(RELEASE, Collections.singletonList(lockPrefix + name), Collections.singletonList(owner));
         }
     }
 

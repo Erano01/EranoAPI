@@ -30,6 +30,30 @@ public interface Backend {
     void sendTo(UUID player, String server, String arena) throws Exception;
 
     /**
+     * {@link #sendTo}, but only if the arena has a free seat to play: it waits for its game ({@code WAITING}, joinable)
+     * and its players plus the players already on their way there are fewer than its capacity. Checked and written in
+     * one atomic step, so two senders can't take the last seat twice. The seat is the pending join: it's freed when the
+     * player arrives ({@link #arriving}) or after {@link Cluster#JOIN_SECONDS}.
+     *
+     * @return {@code false} (and nothing written) when there's no seat
+     */
+    boolean reserve(UUID player, String server, String arena) throws Exception;
+
+    /** Where the player is going on {@code server}, like {@link #arriving}, but left in place. */
+    String pending(UUID player, String server) throws Exception;
+
+    /**
+     * Takes the lock {@code name} for {@code owner} for {@code seconds}, or renews it if {@code owner} holds it; a lock
+     * not renewed in time lapses (its holder crashed). Atomic.
+     *
+     * @return who holds it now: {@code owner} if it was taken or renewed, else the other holder
+     */
+    String claim(String name, String owner, int seconds) throws Exception;
+
+    /** Gives the lock {@code name} up, if {@code owner} holds it. */
+    void release(String name, String owner) throws Exception;
+
+    /**
      * The arena the player is coming to on {@code server}, {@code null} if none, it's for another server or older than
      * {@link Cluster#JOIN_SECONDS}. Removed either way, so it's used once.
      */
