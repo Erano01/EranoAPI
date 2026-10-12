@@ -82,6 +82,8 @@ Paper/NMS/V1_21_R7    me.erano.com.paper.V1_21_R7.*   Paper's names, compiled ag
 - A service without a Paper twin yet falls back to the Bukkit API provider on Paper 1.20.5 - 1.21.11, or
   logs that it isn't supported.
 - Paper has no build for `v1_8_R1`, `v1_8_R2` and `v1_9_R1`.
+- Paper 1.17.1 - 1.20.4 runs on Spigot's names: those twins compile against Paper remapped to Mojang's
+  names (`remapped-mojang`, from `build-paper-jars.sh`) and are reobfuscated like Spigot/NMS.
 
 | Server | Selected NMS provider |
 |---|---|

@@ -14,6 +14,11 @@
 #                     Maven Central, libraries.minecraft.net and repo.papermc.io (see Paper/NMS/pom.xml),
 #                     except Paper's own snapshots (see local_version)
 #
+# Paper 1.17.1 - 1.20.4 runs on Spigot's names. Those jars are also remapped to Mojang's names with Spigot's
+# mappings (org.spigotmc:minecraft-server maps-spigot / maps-mojang, installed by build-spigot-jars.sh) and
+# installed as the remapped-obf and remapped-mojang classifiers, which Paper/NMS compiles and reobfuscates
+# against like Spigot/NMS does.
+#
 # Usage:
 #   scripts/build-paper-jars.sh                  # install everything that is missing
 #   scripts/build-paper-jars.sh 1.21.11 26.3     # install only these versions
@@ -114,7 +119,69 @@ find_jdk() {
 }
 
 installed_in_m2() {
-    [ -f "$M2_PAPER/$1-local/paper-server-$1-local.jar" ]
+    [ -f "$M2_PAPER/$1-local/paper-server-$1-local.jar" ] &&
+    { ! needs_remap "$2" || [ -f "$M2_PAPER/$1-local/paper-server-$1-local-remapped-mojang.jar" ]; }
+}
+
+# Revisions where Paper runs on Spigot's names: 1.17.1 - 1.20.4.
+needs_remap() {
+    case $1 in v1_17_R1|v1_18_R*|v1_19_R*|v1_20_R1|v1_20_R2|v1_20_R3) return 0 ;; *) return 1 ;; esac
+}
+
+SPECIALSOURCE="net.md-5:SpecialSource:1.11.4:jar:shaded"
+
+# Copies maps-mojang $1 to $3 plus a mapping for every Paper class of obf jar $2 that would land on the Mojang
+# name of a vanilla class (Paper's PlayerChunkMap$DistanceManager next to vanilla abe$a = ChunkMap$DistanceManager):
+# it's renamed to Paper<name>, SpecialSource would write the same class twice otherwise.
+mojang_mappings() {
+    python3 -I - "$1" "$2" "$3" <<'EOF'
+import sys, zipfile
+maps, jar, out = sys.argv[1:]
+lines = open(maps, encoding="utf-8").read().splitlines()
+obf2moj = {}
+for l in lines:
+    if l and not l.startswith((" ", "#")) and l.endswith(":"):
+        moj, obf = l[:-1].split(" -> ")
+        obf2moj[obf.replace(".", "/")] = moj.replace(".", "/")
+def target(n):
+    if n in obf2moj:
+        return obf2moj[n]
+    if "$" in n:
+        outer, inner = n.rsplit("$", 1)
+        return target(outer) + "$" + inner
+    return n
+names = [n[:-6] for n in zipfile.ZipFile(jar).namelist() if n.endswith(".class")]
+vanilla = {target(n) for n in names if n in obf2moj}
+for n in names:
+    t = target(n)
+    if n not in obf2moj and t in vanilla:
+        i = max(t.rfind("$"), t.rfind("/")) + 1
+        lines.append(f"{t[:i]}Paper{t[i:]} -> {n}:".replace("/", "."))
+open(out, "w", encoding="utf-8").write("\n".join(lines) + "\n")
+EOF
+}
+
+# Installs paper-server $1 remapped to obf (remapped-obf) and Mojang names (remapped-mojang), working in $2.
+install_remapped() {
+    local mc=$1 work=$2 java ss maps jar="$M2_PAPER/$1-local/paper-server-$1-local.jar"
+    maps="${MAVEN_REPO:-$HOME/.m2/repository}/org/spigotmc/minecraft-server/$mc-R0.1-SNAPSHOT/minecraft-server-$mc-R0.1-SNAPSHOT"
+    [ -f "$maps-maps-spigot.csrg" ] && [ -f "$maps-maps-mojang.txt" ] || {
+        echo "Spigot's $mc mappings missing, run build-spigot-jars.sh $mc first"; return 1; }
+    java=$(java_bin "$(find_jdk 21 || find_jdk 25 || find_jdk 17)") || return 1
+    mvn -B -q dependency:get -Dartifact="$SPECIALSOURCE" || return 1
+    ss="${MAVEN_REPO:-$HOME/.m2/repository}/net/md-5/SpecialSource/1.11.4/SpecialSource-1.11.4-shaded.jar"
+    mkdir -p "$work" &&
+    "$java" -jar "$(native_path "$ss")" -i "$(native_path "$jar")" --srg-in "$(native_path "$maps-maps-spigot.csrg")" --reverse \
+        -o "$(native_path "$work/remapped-obf.jar")" &&
+    mojang_mappings "$maps-maps-mojang.txt" "$work/remapped-obf.jar" "$work/maps-mojang.txt" &&
+    "$java" -jar "$(native_path "$ss")" -i "$(native_path "$work/remapped-obf.jar")" --srg-in "$(native_path "$work/maps-mojang.txt")" \
+        -o "$(native_path "$work/remapped-mojang.jar")" || return 1
+    local classifier
+    for classifier in remapped-obf remapped-mojang; do
+        mvn -B -q install:install-file -Dfile="$(native_path "$work/$classifier.jar")" -Dpackaging=jar -DgeneratePom=false \
+            -DgroupId=io.papermc.paper -DartifactId=paper-server -Dversion="$mc-local" -Dclassifier="$classifier" || return 1
+    done
+    rm -f "$work/remapped-obf.jar" "$work/remapped-mojang.jar" "$work/maps-mojang.txt"
 }
 
 # Prints "<name> <sha256> <url>" of the newest build of Paper $1.
@@ -185,9 +252,17 @@ build_version() {
     local mc=$1 revision=$2 java=$3 jdk name sha url server
     local download="$PAPER_DIR/downloads" work="$PAPER_DIR/work/$mc" logfile="$LOG_DIR/$mc.log"
 
-    if installed_in_m2 "$mc" && [ "${FORCE:-0}" != "1" ]; then
+    if installed_in_m2 "$mc" "$revision" && [ "${FORCE:-0}" != "1" ]; then
         log "$mc ($revision) already installed, skipping"
         SKIPPED+=("$mc"); return 0
+    fi
+
+    # Only the remapped jars are missing.
+    if [ -f "$M2_PAPER/$mc-local/paper-server-$mc-local.jar" ] && [ "${FORCE:-0}" != "1" ]; then
+        log "$mc ($revision) remapping to Mojang's names -> log: $logfile"
+        if install_remapped "$mc" "$work" > "$logfile" 2>&1; then BUILT+=("$mc"); return 0; fi
+        warn "$mc: remapping failed, see $logfile"
+        FAILED+=("$mc (remap)"); return 1
     fi
 
     if ! jdk=$(find_jdk "$java"); then
@@ -222,7 +297,8 @@ build_version() {
 
     write_pom "$mc" "$download/$name" "$work/paper-server.pom"
     if install_snapshot_libraries "$download/$name" "$work" >> "$logfile" 2>&1 &&
-       mvn -B -q install:install-file -Dfile="$(native_path "$server")" -DpomFile="$(native_path "$work/paper-server.pom")" >> "$logfile" 2>&1; then
+       mvn -B -q install:install-file -Dfile="$(native_path "$server")" -DpomFile="$(native_path "$work/paper-server.pom")" >> "$logfile" 2>&1 &&
+       { ! needs_remap "$revision" || install_remapped "$mc" "$work" >> "$logfile" 2>&1; }; then
         BUILT+=("$mc")
         if [ "${CLEAN_AFTER_BUILD:-0}" = "1" ]; then
             rm -rf "$work" "$download/$name"

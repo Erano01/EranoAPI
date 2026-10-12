@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.github.erano01</groupId>
+        <artifactId>EranoAPI-Paper-NMS</artifactId>
+        <version>1.0.0-alpha.3</version>
+    </parent>
+
+    <artifactId>Paper-V1_21_R5</artifactId>
+
+    <!-- Paper 1.20.5+ runs on Mojang's names and an unrelocated org.bukkit.craftbukkit: no remapping. -->
+    <dependencies>
+        <dependency>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-server</artifactId>
+            <version>1.21.8-local</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+</project>
