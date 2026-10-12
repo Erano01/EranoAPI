@@ -11,7 +11,7 @@
     <artifactId>EranoAPI-Paper-Build</artifactId>
     <packaging>pom</packaging>
     <name>EranoAPI Paper</name>
-    <description>The Paper side of EranoAPI: NMS (one module per revision), shaded into the Spigot Dist jar.</description>
+    <description>The Paper side of EranoAPI: Core (Paper API providers) and NMS (one module per revision), shaded into the Spigot Dist jar.</description>
 
     <!-- Only groups the Paper modules (mvn -pl Paper -amd builds them all), nothing here is published. -->
     <properties>
@@ -22,6 +22,7 @@
     </properties>
 
     <modules>
+        <module>Core</module>
         <module>NMS</module>
     </modules>
 

@@ -9,8 +9,9 @@ EranoAPI/
 ├── Spigot/
 │   ├── Core/      EranoAPI-Spigot    the Bukkit API plugins compile against
 │   ├── NMS/V*/    one module per NMS revision (V1_8_R1 … V1_21_R7, V26_1 … V26_3), internal
-│   └── Dist/      EranoAPI.jar       the plugin: Common + Core + every NMS and Paper NMS module
+│   └── Dist/      EranoAPI.jar       the plugin: Common + Core + Paper Core + every NMS and Paper NMS module
 ├── Paper/
+│   ├── Core/      EranoAPI-Paper-Core  providers built on Paper's API (no reflection), internal
 │   └── NMS/V*/    Paper-V*           the Paper twin of a Spigot NMS revision, internal
 ├── Forge/V*/      EranoAPI-Forge     one Forge MDK per Minecraft version
 ├── Fabric/V*/     EranoAPI-Fabric    one Fabric project per Minecraft version
@@ -34,8 +35,35 @@ Group `io.github.erano01`, artifact ids are case sensitive. NMS modules and Spig
 - Each provider declares its `VersionRange`. `VersionedServices.select` takes the highest priority, then the most
   specific range; providers that fail to load are skipped.
 - Classes of newer APIs are only loaded after a version check, so one jar runs on 1.8 and on 26.x.
+- Version names (materials, sounds ...) are generated tables, not code: see [Versioned-APIs.md](Versioned-APIs.md).
 
 ## Paper and Purpur (Spigot)
+
+### Core
+
+`Spigot/Core` (`EranoAPI-Spigot`) holds the interfaces plugins compile against (`TPSHandlerFactory`,
+`HologramServiceProvider` ...) and the providers built on the Bukkit API alone. Paper is a fork of Spigot:
+it carries the whole Bukkit API and runs the same plugins, so Spigot's Core is Paper's Core too. What
+breaks on Paper is NMS, not Core.
+
+```
+Spigot/Core   Spigot + Paper + Purpur (Bukkit API)
+Spigot/NMS    Spigot only
+Paper/NMS     Paper / Purpur only
+```
+
+`Paper/Core` (`EranoAPI-Paper-Core`) is only for Paper-only features: API the Bukkit API doesn't have
+(Adventure `Component`, Brigadier commands, async chunk loading, `Server#getTPS()` ...). Spigot/Core
+compiles against spigot-api and reaches those by reflection (`PaperTPSHandlerFactory`); Paper/Core
+compiles against paper-api, so it doesn't need to.
+
+- Its providers use `isAvailable() = Platform.isPaper()` and the same `META-INF/services` files.
+- Internal: shaded into `EranoAPI.jar`, never published. Plugins still depend on `EranoAPI-Spigot` only.
+- A published `EranoAPI-Paper` artifact is only needed once plugins should get Paper-only interfaces,
+  e.g. a `MessageService` taking an Adventure `Component`. That's an API design decision; nothing needs
+  it yet.
+
+### NMS
 
 Paper (and Purpur, a fork of Paper) patch NMS differently from Spigot, and from 1.20.5 to 1.21.11 run on
 Mojang's names with an unrelocated `org.bukkit.craftbukkit`, where Spigot runs on Spigot's names.
@@ -59,7 +87,6 @@ Paper/NMS/V1_21_R7    me.erano.com.paper.V1_21_R7.*   Paper's names, compiled ag
 |---|---|
 | Spigot | `Spigot/NMS` |
 | Paper / Purpur | `Paper/NMS` |
-- Version names (materials, sounds ...) are generated tables, not code: see [Versioned-APIs.md](Versioned-APIs.md).
 
 ## Supported versions
 
