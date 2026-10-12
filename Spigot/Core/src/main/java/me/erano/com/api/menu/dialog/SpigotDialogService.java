@@ -29,6 +29,14 @@ import net.md_5.bungee.api.dialog.body.PlainMessageBody;
 import net.md_5.bungee.api.dialog.input.InputOption;
 import net.md_5.bungee.api.dialog.input.SingleOptionInput;
 
+import me.erano.com.common.menu.dialog.BooleanInput;
+import me.erano.com.common.menu.dialog.DialogButton;
+import me.erano.com.common.menu.dialog.DialogInput;
+import me.erano.com.common.menu.dialog.DialogMenu;
+import me.erano.com.common.menu.dialog.NumberInput;
+import me.erano.com.common.menu.dialog.OptionInput;
+import me.erano.com.common.menu.dialog.TextInput;
+
 /**
  * Spigot 1.21.6+: bungeecord-dialog. Every button sends {@code eranoapi:dialog/<session>/<button>} back
  * ({@link PlayerCustomClickEvent}), mapped here to the button of the player's open dialog.
@@ -47,7 +55,7 @@ public class SpigotDialogService extends AbstractDialogService implements Listen
     }
 
     @Override
-    public void show(Player player, DialogMenu menu) {
+    public void show(Player player, DialogMenu<Player> menu) {
         menu.prepare(player);
         int session = nextSession++;
 
@@ -94,8 +102,8 @@ public class SpigotDialogService extends AbstractDialogService implements Listen
             return;
         }
         int index = Integer.parseInt(path[2]);
-        DialogMenu menu = session.menu;
-        DialogButton button = index == EXIT ? menu.getExitButton() : index < menu.getButtons().size() ? menu.getButtons().get(index) : null;
+        DialogMenu<Player> menu = session.menu;
+        DialogButton<Player> button = index == EXIT ? menu.getExitButton() : index < menu.getButtons().size() ? menu.getButtons().get(index) : null;
         if (button == null) {
             return;
         }
@@ -110,7 +118,7 @@ public class SpigotDialogService extends AbstractDialogService implements Listen
     }
 
     // The payload is the inputs' NBT as JSON: text and option ids are strings, checkboxes 0 / 1 or booleans.
-    private static Map<String, Object> values(DialogMenu menu, JsonElement data) {
+    private static Map<String, Object> values(DialogMenu<Player> menu, JsonElement data) {
         Map<String, Object> values = new HashMap<>();
         if (data == null || !data.isJsonObject()) {
             return values;
@@ -133,7 +141,7 @@ public class SpigotDialogService extends AbstractDialogService implements Listen
         return values;
     }
 
-    private static ActionButton toBungee(DialogButton button, int session, int index) {
+    private static ActionButton toBungee(DialogButton<Player> button, int session, int index) {
         ActionButton bungee = new ActionButton(text(button.getLabel()), new CustomClickAction(NAMESPACE + ":dialog/" + session + "/" + index));
         bungee.width(button.getWidth());
         if (button.getTooltip() != null) {
@@ -174,9 +182,9 @@ public class SpigotDialogService extends AbstractDialogService implements Listen
     private static final class Session {
 
         private final int id;
-        private final DialogMenu menu;
+        private final DialogMenu<Player> menu;
 
-        private Session(int id, DialogMenu menu) {
+        private Session(int id, DialogMenu<Player> menu) {
             this.id = id;
             this.menu = menu;
         }

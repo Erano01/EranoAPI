@@ -8,7 +8,8 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.inventory.Inventory;
 
 import me.erano.com.api.EranoServices;
-import me.erano.com.api.menu.dialog.DialogMenu;
+import me.erano.com.common.menu.Menu;
+import me.erano.com.common.menu.dialog.DialogMenu;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,8 +25,15 @@ public class MenuDispatcher {
     // Trigger method - Herhangi bir yerden kullanılabilir menü sistemi bu sayede:
     // menuDispatcher.openMenu(new PianoMenu(), player);   -> chest GUI
     // menuDispatcher.openMenu(new SettingsDialog(), player); -> dialog (1.21.6+)
-    public void openMenu(Menu menu, Player player) {
-        menu.open(player, this);
+    // Menu Common'da platformdan bağımsız; Bukkit'in açabildiği tipler InventoryMenu ve DialogMenu.
+    public void openMenu(Menu<Player> menu, Player player) {
+        if (menu instanceof InventoryMenu) {
+            this.openInventory((InventoryMenu) menu, player);
+        } else if (menu instanceof DialogMenu) {
+            this.openDialog((DialogMenu<Player>) menu, player);
+        } else {
+            throw new IllegalArgumentException("Bukkit can't open " + menu.getClass().getName());
+        }
     }
 
     // Registry'e entry olarak eklenir ve oyuncunun ekranına Inventory açar.
@@ -37,7 +45,7 @@ public class MenuDispatcher {
     // Dialog'un buton callback'lerini dialog servisi tutar (EranoServices.dialogs()), registry'e gerek yok.
     // Dialog desteklenmiyorsa (1.21.6 öncesi) UnsupportedOperationException fırlatır; önce
     // EranoServices.dialogs().isSupported() ile kontrol edip InventoryMenu'ye düşebilirsin.
-    public void openDialog(DialogMenu menu, Player player) {
+    public void openDialog(DialogMenu<Player> menu, Player player) {
         EranoServices.dialogs().show(player, menu);
     }
 

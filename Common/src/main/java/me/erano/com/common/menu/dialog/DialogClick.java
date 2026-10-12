@@ -1,27 +1,25 @@
-package me.erano.com.api.menu.dialog;
+package me.erano.com.common.menu.dialog;
 
 import java.util.Map;
 
-import org.bukkit.entity.Player;
-
 /** A {@link DialogButton} click: who clicked and what the dialog's inputs held, by {@link DialogInput#getKey()}. */
-public class DialogClick {
+public class DialogClick<P> {
 
-    private final Player player;
-    private final DialogMenu menu;
+    private final P player;
+    private final DialogMenu<P> menu;
     private final Map<String, Object> values;
 
-    public DialogClick(Player player, DialogMenu menu, Map<String, Object> values) {
+    public DialogClick(P player, DialogMenu<P> menu, Map<String, Object> values) {
         this.player = player;
         this.menu = menu;
         this.values = values;
     }
 
-    public Player getPlayer() {
+    public P getPlayer() {
         return player;
     }
 
-    public DialogMenu getMenu() {
+    public DialogMenu<P> getMenu() {
         return menu;
     }
 

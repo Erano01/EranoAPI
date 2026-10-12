@@ -4,7 +4,7 @@
 
 ```
 EranoAPI/
-├── Common/        EranoAPI-Common    platform-free contracts, plain Java 8
+├── Common/        EranoAPI-Common    platform-free contracts and the menu / dialog model, plain Java 8
 ├── Cluster/       EranoAPI-Cluster   network state over MySQL / Redis, plain Java 8, bundled by its users
 ├── Spigot/
 │   ├── Core/      EranoAPI-Spigot    the Bukkit API plugins compile against
@@ -13,6 +13,12 @@ EranoAPI/
 ├── Paper/
 │   ├── Core/      EranoAPI-Paper-Core  providers built on Paper's API (no reflection), internal
 │   └── NMS/V*/    Paper-V*           the Paper twin of a Spigot NMS revision, internal
+├── Bedrock/
+│   ├── Crossplay/    EranoAPI-Bedrock-Crossplay     Bedrock players on Spigot / Paper (Geyser / Floodgate), empty
+│   ├── Nukkit/       EranoAPI-Bedrock-Nukkit        Nukkit and Nukkit-MOT, empty
+│   ├── PowerNukkitX/ EranoAPI-Bedrock-PowerNukkitX  PowerNukkitX, empty
+│   ├── Allay/        EranoAPI-Bedrock-Allay         Allay, empty
+│   └── Waterdog/     EranoAPI-Bedrock-Waterdog      WaterdogPE proxy, empty
 ├── Forge/V*/      EranoAPI-Forge     one Forge MDK per Minecraft version
 ├── Fabric/V*/     EranoAPI-Fabric    one Fabric project per Minecraft version
 └── scripts/       builds, publishing, the version reports
@@ -89,6 +95,35 @@ Paper/NMS/V1_21_R7    me.erano.com.paper.V1_21_R7.*   Paper's names, compiled ag
 |---|---|
 | Spigot | `Spigot/NMS` |
 | Paper / Purpur | `Paper/NMS` |
+
+## Bedrock
+
+EranoAPI is Java, so it only runs inside Java servers and proxies: one module under `Bedrock/` each.
+Bedrock clients update themselves, so a module targets the current Bedrock version only: no version
+matrix like Spigot's 1.8 - 26.x.
+
+| Module | Runs on | Players | Features |
+|---|---|---|---|
+| `Crossplay` | Spigot / Paper + Geyser (protocol translation) + Floodgate (no Java account needed) | Java and Bedrock | all |
+| `Nukkit` | Nukkit, Nukkit-MOT (same API) | Bedrock | all |
+| `PowerNukkitX` | PowerNukkitX (Nukkit fork with its own API, like Paper next to Spigot) | Bedrock | all |
+| `Allay` | Allay | Bedrock | all |
+| `Waterdog` | WaterdogPE proxy, in front of any backend: BDS, Endstone, LeviLamina, Dragonfly ... | Bedrock | UI only: forms, titles, boss bars (the proxy can't see the world) |
+
+- **Order: Crossplay, Nukkit / PowerNukkitX, Waterdog, Allay.** Crossplay reaches the most players: every
+  Java server EranoAPI supports, Bedrock players included.
+- **Crossplay.** Geyser translates chest GUIs, titles, boss bars and armor stand holograms. What's added is
+  per-player: `isBedrock(player)` and showing `DialogMenu`s as Bedrock forms. Floodgate's API works on
+  every backend, also with Geyser on the proxy; Geyser's own API only where Geyser runs as a plugin.
+  EranoAPI uses whichever is installed (Floodgate, then Geyser) and changes nothing without them.
+  Geyser 2.11.3 doesn't start on Paper 26.3 yet.
+- **Forms work on every Java version.** A Bedrock player sees `DialogMenu`s as forms even on 1.8, since
+  forms don't depend on the Java protocol: `TextInput` → input, `BooleanInput` → toggle, `NumberInput` →
+  slider, `OptionInput` → dropdown; buttons only → simple form, inputs → custom form.
+- **Native servers** implement the platform-independent API in `Common` (`Menu<P>`, `DialogMenu<P>`, `P`
+  being the platform's player type), the same layer Fabric and Forge need.
+- **Not supported:** servers that can't run Java code: PocketMine-MP (PHP, archived in July 2026), Endstone
+  and LeviLamina (C++), Dragonfly (Go), BDS. Their players are reached through `Waterdog`.
 
 ## Supported versions
 

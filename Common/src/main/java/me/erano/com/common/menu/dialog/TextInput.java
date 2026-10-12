@@ -1,4 +1,4 @@
-package me.erano.com.api.menu.dialog;
+package me.erano.com.common.menu.dialog;
 
 /** A text box. */
 public class TextInput extends DialogInput {

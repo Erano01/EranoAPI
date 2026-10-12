@@ -1,9 +1,11 @@
 package me.erano.com.api.menu.dialog;
 
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import me.erano.com.api.Platform;
 import me.erano.com.common.VersionRange;
+import me.erano.com.common.menu.dialog.DialogService;
 
 /** Spigot 1.21.6+; Paper has its own dialog API, see Paper/Core. */
 public class SpigotDialogServiceProvider implements DialogServiceProvider {
@@ -19,7 +21,7 @@ public class SpigotDialogServiceProvider implements DialogServiceProvider {
     }
 
     @Override
-    public DialogService create(Plugin plugin) {
+    public DialogService<Player> create(Plugin plugin) {
         return new SpigotDialogService(plugin);
     }
 }

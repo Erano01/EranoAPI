@@ -1,16 +1,13 @@
-package me.erano.com.api.menu.dialog;
+package me.erano.com.common.menu.dialog;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.bukkit.entity.Player;
+import me.erano.com.common.menu.Menu;
 
-import me.erano.com.api.menu.Menu;
-import me.erano.com.api.menu.MenuDispatcher;
-
-//usage:
-//public class SettingsDialog extends DialogMenu {
+//usage (Bukkit):
+//public class SettingsDialog extends DialogMenu<Player> {
 //    public SettingsDialog() { super("Ayarlar"); }
 //
 //    @Override
@@ -23,19 +20,21 @@ import me.erano.com.api.menu.MenuDispatcher;
 //menuDispatcher.openMenu(new SettingsDialog(), player);
 
 /**
- * Minecraft's dialog screen (1.21.6+): text, inputs and buttons instead of item slots. Shown through
- * {@link me.erano.com.api.EranoServices#dialogs()}; check its {@code isSupported()} on older servers.
+ * A screen of text, inputs and buttons instead of item slots: Minecraft's dialog screen on Java Edition
+ * (1.21.6+), a form on Bedrock. Shown through the platform's {@link DialogService}.
  *
- * <p>Like {@link me.erano.com.api.menu.InventoryMenu#decorate(Player)}, the content is built in
- * {@link #decorate(Player)}, for the player it's shown to, every time it's opened.
+ * <p>Like {@code InventoryMenu#decorate}, the content is built in {@link #decorate(Object)}, for the player
+ * it's shown to, every time it's opened.
+ *
+ * @param <P> the platform's player type
  */
-public abstract class DialogMenu implements Menu {
+public abstract class DialogMenu<P> implements Menu<P> {
 
     private final String title;
     private final List<String> body = new ArrayList<>();
     private final List<DialogInput> inputs = new ArrayList<>();
-    private final List<DialogButton> buttons = new ArrayList<>();
-    private DialogButton exitButton;
+    private final List<DialogButton<P>> buttons = new ArrayList<>();
+    private DialogButton<P> exitButton;
     private int columns = 2;
     private boolean closeWithEscape = true;
 
@@ -44,15 +43,10 @@ public abstract class DialogMenu implements Menu {
     }
 
     // Alt sınıf addBody / addInput / addButton ile içeriği burada kurar.
-    protected abstract void decorate(Player player);
-
-    @Override
-    public void open(Player player, MenuDispatcher dispatcher) {
-        dispatcher.openDialog(this, player);
-    }
+    protected abstract void decorate(P player);
 
     /** Clears the content and builds it again for {@code player}; called by the dialog service before showing. */
-    public final void prepare(Player player) {
+    public final void prepare(P player) {
         body.clear();
         inputs.clear();
         buttons.clear();
@@ -68,12 +62,12 @@ public abstract class DialogMenu implements Menu {
         inputs.add(input);
     }
 
-    public void addButton(DialogButton button) {
+    public void addButton(DialogButton<P> button) {
         buttons.add(button);
     }
 
     /** Button under the others, also run when the dialog is closed with Escape. */
-    public void setExitButton(DialogButton exitButton) {
+    public void setExitButton(DialogButton<P> exitButton) {
         this.exitButton = exitButton;
     }
 
@@ -97,11 +91,11 @@ public abstract class DialogMenu implements Menu {
         return Collections.unmodifiableList(inputs);
     }
 
-    public List<DialogButton> getButtons() {
+    public List<DialogButton<P>> getButtons() {
         return Collections.unmodifiableList(buttons);
     }
 
-    public DialogButton getExitButton() {
+    public DialogButton<P> getExitButton() {
         return exitButton;
     }
 

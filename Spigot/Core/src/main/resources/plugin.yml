@@ -3,6 +3,8 @@ version: ${project.version}
 main: me.erano.com.api.CorePlugin
 #api-version can be 1.13 min
 api-version: 1.13
+# Bedrock players (Bedrock/Crossplay): enabled before EranoAPI when installed.
+softdepend: [floodgate, Geyser-Spigot]
 commands:
   showtps:
     description: Shows the current TPS

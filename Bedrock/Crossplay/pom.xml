@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.github.erano01</groupId>
+        <artifactId>EranoAPI-Bedrock</artifactId>
+        <version>1.0.0-alpha.3</version>
+    </parent>
+    <artifactId>EranoAPI-Bedrock-Crossplay</artifactId>
+    <name>EranoAPI Bedrock Crossplay</name>
+    <description>Bedrock players on Spigot / Paper servers through Geyser / Floodgate.</description>
+
+    <!-- Runs inside EranoAPI.jar on Spigot / Paper, next to Spigot/Core. Floodgate, Geyser and Cumulus are
+         the server owner's plugins: only compiled against, used where installed. -->
+    <dependencies>
+        <dependency>
+            <groupId>io.github.erano01</groupId>
+            <artifactId>EranoAPI-Spigot</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- Same spigot-api as Spigot/Core; its provided scope doesn't reach this module. -->
+        <dependency>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-api</artifactId>
+            <version>26.3-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.geysermc.floodgate</groupId>
+            <artifactId>api</artifactId>
+            <version>2.2.5-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.geysermc.geyser</groupId>
+            <artifactId>api</artifactId>
+            <version>2.11.3-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- The form API both of them ship. -->
+        <dependency>
+            <groupId>org.geysermc.cumulus</groupId>
+            <artifactId>cumulus</artifactId>
+            <version>1.1.2</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <repositories>
+        <repository>
+            <id>opencollab</id>
+            <url>https://repo.opencollab.dev/main/</url>
+        </repository>
+    </repositories>
+
+</project>

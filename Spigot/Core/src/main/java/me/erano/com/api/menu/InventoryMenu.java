@@ -9,12 +9,14 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import me.erano.com.common.menu.Menu;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public abstract class InventoryMenu implements Menu, InventoryHandler {
+public abstract class InventoryMenu implements Menu<Player>, InventoryHandler {
 
     private final int size;
     private final String title;
@@ -45,11 +47,6 @@ public abstract class InventoryMenu implements Menu, InventoryHandler {
             this.inventory = this.createInventory();
         }
         return this.inventory;
-    }
-
-    @Override
-    public void open(Player player, MenuDispatcher dispatcher) {
-        dispatcher.openInventory(this, player);
     }
 
     // buttonMap'e yeni bir entry ekler.

@@ -17,13 +17,13 @@ import io.papermc.paper.registry.data.dialog.body.DialogBody;
 import io.papermc.paper.registry.data.dialog.input.SingleOptionDialogInput;
 import io.papermc.paper.registry.data.dialog.type.DialogType;
 import me.erano.com.api.menu.dialog.AbstractDialogService;
-import me.erano.com.api.menu.dialog.BooleanInput;
-import me.erano.com.api.menu.dialog.DialogButton;
-import me.erano.com.api.menu.dialog.DialogInput;
-import me.erano.com.api.menu.dialog.DialogMenu;
-import me.erano.com.api.menu.dialog.NumberInput;
-import me.erano.com.api.menu.dialog.OptionInput;
-import me.erano.com.api.menu.dialog.TextInput;
+import me.erano.com.common.menu.dialog.BooleanInput;
+import me.erano.com.common.menu.dialog.DialogButton;
+import me.erano.com.common.menu.dialog.DialogInput;
+import me.erano.com.common.menu.dialog.DialogMenu;
+import me.erano.com.common.menu.dialog.NumberInput;
+import me.erano.com.common.menu.dialog.OptionInput;
+import me.erano.com.common.menu.dialog.TextInput;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickCallback;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
@@ -36,7 +36,7 @@ public class PaperDialogService extends AbstractDialogService {
     }
 
     @Override
-    public void show(Player player, DialogMenu menu) {
+    public void show(Player player, DialogMenu<Player> menu) {
         menu.prepare(player);
 
         List<DialogBody> body = new ArrayList<>();
@@ -48,7 +48,7 @@ public class PaperDialogService extends AbstractDialogService {
             inputs.add(toPaper(input));
         }
         List<ActionButton> buttons = new ArrayList<>();
-        for (DialogButton button : menu.getButtons()) {
+        for (DialogButton<Player> button : menu.getButtons()) {
             buttons.add(toPaper(menu, button));
         }
         ActionButton exit = menu.getExitButton() == null ? null : toPaper(menu, menu.getExitButton());
@@ -68,7 +68,7 @@ public class PaperDialogService extends AbstractDialogService {
         player.closeDialog();
     }
 
-    private ActionButton toPaper(DialogMenu menu, DialogButton button) {
+    private ActionButton toPaper(DialogMenu<Player> menu, DialogButton<Player> button) {
         DialogAction action = DialogAction.customClick(
                 (response, audience) -> {
                     if (audience instanceof Player) {
@@ -83,7 +83,7 @@ public class PaperDialogService extends AbstractDialogService {
                 .build();
     }
 
-    private static Map<String, Object> values(DialogMenu menu, DialogResponseView response) {
+    private static Map<String, Object> values(DialogMenu<Player> menu, DialogResponseView response) {
         Map<String, Object> values = new HashMap<>();
         for (DialogInput input : menu.getInputs()) {
             String key = input.getKey();

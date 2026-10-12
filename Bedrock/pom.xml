@@ -10,15 +10,40 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>EranoAPI-Bedrock</artifactId>
+    <packaging>pom</packaging>
     <name>EranoAPI Bedrock</name>
-    <description>Bedrock Edition support (Geyser / Floodgate).</description>
+    <description>Bedrock Edition support, one module per way Bedrock players are served.</description>
 
-    <!-- Empty for now, nothing here is published. -->
+    <!-- Only groups the Bedrock modules (mvn -pl Bedrock -amd builds them all), nothing here is published yet. -->
     <properties>
         <maven.deploy.skip>true</maven.deploy.skip>
         <maven.source.skip>true</maven.source.skip>
         <maven.javadoc.skip>true</maven.javadoc.skip>
         <gpg.skip>true</gpg.skip>
     </properties>
+
+    <!-- Java servers only: EranoAPI runs inside the server (or proxy) process. Bedrock clients update
+         themselves, so each module targets the current Bedrock version: no version matrix like Spigot's.
+         Crossplay:    Bedrock players on a Spigot / Paper server through Geyser / Floodgate.
+         Nukkit:       Nukkit and Nukkit-MOT (same API).
+         PowerNukkitX: Nukkit fork with its own API, like Paper next to Spigot.
+         Allay:        native Bedrock server with its own API.
+         Waterdog:     WaterdogPE proxy, UI features for any backend (BDS, Endstone, LeviLamina ...).
+         All implement Common's platform-independent API (menus, dialogs). -->
+    <modules>
+        <module>Crossplay</module>
+        <module>Nukkit</module>
+        <module>PowerNukkitX</module>
+        <module>Allay</module>
+        <module>Waterdog</module>
+    </modules>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.github.erano01</groupId>
+            <artifactId>EranoAPI-Common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
 
 </project>

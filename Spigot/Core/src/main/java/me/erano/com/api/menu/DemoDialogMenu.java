@@ -2,12 +2,12 @@ package me.erano.com.api.menu;
 
 import org.bukkit.entity.Player;
 
-import me.erano.com.api.menu.dialog.DialogButton;
-import me.erano.com.api.menu.dialog.DialogInput;
-import me.erano.com.api.menu.dialog.DialogMenu;
+import me.erano.com.common.menu.dialog.DialogButton;
+import me.erano.com.common.menu.dialog.DialogInput;
+import me.erano.com.common.menu.dialog.DialogMenu;
 
 // PianoMenu'nün dialog karşılığı: her input tipinden biri, gönderilince değerleri oyuncuya yazar.
-public class DemoDialogMenu extends DialogMenu {
+public class DemoDialogMenu extends DialogMenu<Player> {
 
     private final MenuDispatcher menuDispatcher;
 
@@ -26,17 +26,17 @@ public class DemoDialogMenu extends DialogMenu {
                 .option("survival", "Survival", true)
                 .option("creative", "Creative"));
 
-        addButton(new DialogButton()
+        addButton(new DialogButton<Player>()
                 .label("§aGönder")
                 .tooltip("Değerleri sohbete yazar")
                 .consumer(click -> click.getPlayer().sendMessage("nick=" + click.getText("nick")
                         + " pvp=" + click.getBoolean("pvp")
                         + " volume=" + click.getNumber("volume")
                         + " mode=" + click.getText("mode"))));
-        addButton(new DialogButton()
+        addButton(new DialogButton<Player>()
                 .label("Piano")
                 .tooltip("Envanter menüsüne geçer")
                 .consumer(click -> menuDispatcher.openMenu(new PianoMenu(), click.getPlayer())));
-        setExitButton(new DialogButton().label("Kapat"));
+        setExitButton(new DialogButton<Player>().label("Kapat"));
     }
 }

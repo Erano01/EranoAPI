@@ -40,7 +40,7 @@
 		<module>Spigot</module>
 		<!-- Paper NMS (Paper/pom.xml), shaded into Spigot/Dist. -->
 		<module>Paper</module>
-		<!-- Bedrock Edition (Bedrock/pom.xml), empty for now. -->
+		<!-- Bedrock Edition (Bedrock/pom.xml): Crossplay (Geyser / Floodgate) and Nukkit. -->
 		<module>Bedrock</module>
 	</modules>
 

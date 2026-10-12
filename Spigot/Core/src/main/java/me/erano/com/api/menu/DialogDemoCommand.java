@@ -6,6 +6,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import me.erano.com.api.EranoServices;
+import me.erano.com.common.menu.Menu;
 
 public class DialogDemoCommand implements CommandExecutor {
 
@@ -21,8 +22,8 @@ public class DialogDemoCommand implements CommandExecutor {
             return true;
         }
         Player player = (Player) commandSender;
-        // Dialog yoksa (1.21.6 öncesi) envanter menüsüne düş.
-        Menu menu = EranoServices.dialogs().isSupported() ? new DemoDialogMenu(menuDispatcher) : new PianoMenu();
+        // Dialog yoksa (1.21.6 öncesi Java oyuncusu) envanter menüsüne düş; Bedrock oyuncusu her sürümde form görür.
+        Menu<Player> menu = EranoServices.dialogs().isSupported(player) ? new DemoDialogMenu(menuDispatcher) : new PianoMenu();
         this.menuDispatcher.openMenu(menu, player);
         return true;
     }

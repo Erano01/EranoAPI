@@ -1,4 +1,4 @@
-package me.erano.com.api.menu.dialog;
+package me.erano.com.common.menu.dialog;
 
 /** A field of a {@link DialogMenu}; its value reaches {@link DialogClick} under {@link #getKey()}. */
 public abstract class DialogInput {

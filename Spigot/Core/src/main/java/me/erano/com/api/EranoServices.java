@@ -3,8 +3,12 @@ package me.erano.com.api;
 import java.util.function.Function;
 import java.util.logging.Level;
 
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
+import me.erano.com.api.bedrock.BedrockService;
+import me.erano.com.api.bedrock.BedrockServiceProvider;
+import me.erano.com.api.bedrock.NoBedrockService;
 import me.erano.com.api.bossbar.BossBarService;
 import me.erano.com.api.bossbar.BossBarServiceProvider;
 import me.erano.com.api.bossbar.PacketBossBarService;
@@ -16,9 +20,10 @@ import me.erano.com.api.hologram.AbstractHologramService;
 import me.erano.com.api.hologram.HologramService;
 import me.erano.com.api.hologram.HologramServiceProvider;
 import me.erano.com.api.hologram.UnsupportedHologramService;
-import me.erano.com.api.menu.dialog.DialogService;
+import me.erano.com.api.menu.dialog.CrossplayDialogService;
+import me.erano.com.common.menu.dialog.DialogService;
 import me.erano.com.api.menu.dialog.DialogServiceProvider;
-import me.erano.com.api.menu.dialog.UnsupportedDialogService;
+import me.erano.com.common.menu.dialog.UnsupportedDialogService;
 import me.erano.com.common.VersionedService;
 import me.erano.com.common.VersionedServices;
 
@@ -32,7 +37,8 @@ public final class EranoServices {
     private static MessageService messages;
     private static HologramService holograms;
     private static BossBarService bossBars;
-    private static DialogService dialogs;
+    private static DialogService<Player> dialogs;
+    private static BedrockService bedrock;
 
     private EranoServices() {
     }
@@ -47,9 +53,14 @@ public final class EranoServices {
         return require(bossBars);
     }
 
-    /** Minecraft's dialog screens (1.21.6+); see {@link me.erano.com.api.menu.dialog.DialogMenu}. */
-    public static DialogService dialogs() {
+    /** Minecraft's dialog screens (1.21.6+), forms for Bedrock players (every version); see {@link me.erano.com.api.menu.dialog.DialogMenu}. */
+    public static DialogService<Player> dialogs() {
         return require(dialogs);
+    }
+
+    /** Bedrock players on this server, through Geyser / Floodgate. */
+    public static BedrockService bedrock() {
+        return require(bedrock);
     }
 
     /** Client side text markers. */
@@ -61,7 +72,9 @@ public final class EranoServices {
         messages = select(plugin, MessageServiceProvider.class, MessageServiceProvider::create, new BukkitMessageService());
         holograms = select(plugin, HologramServiceProvider.class, provider -> provider.create(plugin), new UnsupportedHologramService());
         bossBars = select(plugin, BossBarServiceProvider.class, provider -> provider.create(plugin), new UnsupportedBossBarService());
-        dialogs = select(plugin, DialogServiceProvider.class, provider -> provider.create(plugin), new UnsupportedDialogService());
+        bedrock = select(plugin, BedrockServiceProvider.class, provider -> provider.create(plugin), new NoBedrockService());
+        DialogService<Player> javaDialogs = select(plugin, DialogServiceProvider.class, provider -> provider.create(plugin), new UnsupportedDialogService<>());
+        dialogs = bedrock.isSupported() ? new CrossplayDialogService(javaDialogs, bedrock) : javaDialogs;
     }
 
     static void disable() {
@@ -75,6 +88,7 @@ public final class EranoServices {
         holograms = null;
         bossBars = null;
         dialogs = null;
+        bedrock = null;
     }
 
     private static <P extends VersionedService, S> S select(Plugin plugin, Class<P> type, Function<P, S> create, S fallback) {

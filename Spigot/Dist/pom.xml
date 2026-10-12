@@ -61,6 +61,8 @@
 		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_8_R2</artifactId><version>${project.version}</version></dependency>
 		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_8_R1</artifactId><version>${project.version}</version></dependency>
 		<dependency><groupId>io.github.erano01</groupId><artifactId>EranoAPI-Paper-Core</artifactId><version>${project.version}</version></dependency>
+		<!-- Bedrock players through Geyser / Floodgate -->
+		<dependency><groupId>io.github.erano01</groupId><artifactId>EranoAPI-Bedrock-Crossplay</artifactId><version>${project.version}</version></dependency>
 		<!-- Paper/NMS: the Paper twins of the revisions above -->
 		<dependency><groupId>io.github.erano01</groupId><artifactId>Paper-V26_3</artifactId><version>${project.version}</version></dependency>
 		<dependency><groupId>io.github.erano01</groupId><artifactId>Paper-V26_2</artifactId><version>${project.version}</version></dependency>

@@ -1,4 +1,4 @@
-package me.erano.com.api.menu.dialog;
+package me.erano.com.common.menu.dialog;
 
 /** A slider from {@link #getStart()} to {@link #getEnd()}. */
 public class NumberInput extends DialogInput {

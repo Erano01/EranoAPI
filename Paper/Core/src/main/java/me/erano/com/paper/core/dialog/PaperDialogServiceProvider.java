@@ -1,9 +1,10 @@
 package me.erano.com.paper.core.dialog;
 
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import me.erano.com.api.Platform;
-import me.erano.com.api.menu.dialog.DialogService;
+import me.erano.com.common.menu.dialog.DialogService;
 import me.erano.com.api.menu.dialog.DialogServiceProvider;
 import me.erano.com.common.VersionRange;
 
@@ -29,7 +30,7 @@ public class PaperDialogServiceProvider implements DialogServiceProvider {
     }
 
     @Override
-    public DialogService create(Plugin plugin) {
+    public DialogService<Player> create(Plugin plugin) {
         return new PaperDialogService(plugin);
     }
 }
