@@ -40,6 +40,8 @@
 		<module>Spigot</module>
 		<!-- Paper NMS (Paper/pom.xml), shaded into Spigot/Dist. -->
 		<module>Paper</module>
+		<!-- Bedrock Edition (Bedrock/pom.xml), empty for now. -->
+		<module>Bedrock</module>
 	</modules>
 
 	<!-- Properties defined here are inherited by all modules -->
