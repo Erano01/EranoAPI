@@ -7,6 +7,9 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.inventory.Inventory;
 
+import me.erano.com.api.EranoServices;
+import me.erano.com.api.menu.dialog.DialogMenu;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,11 +21,24 @@ public class MenuDispatcher {
     // Oyuncular tarafından açılan tüm inventory'leri cache'ler bu registry.
     private final Map<Inventory, InventoryHandler> activeInventories = new HashMap<>();
 
-    // Trigger method - Registry'e entry olarak eklenir ve oyuncunun ekranına Inventory açar.
-    // Herhangi bir yerden kullanılabilir menü sistemi bu sayede -> menuDispatcher.openMenu(new PianoMenu(), player);
+    // Trigger method - Herhangi bir yerden kullanılabilir menü sistemi bu sayede:
+    // menuDispatcher.openMenu(new PianoMenu(), player);   -> chest GUI
+    // menuDispatcher.openMenu(new SettingsDialog(), player); -> dialog (1.21.6+)
     public void openMenu(Menu menu, Player player) {
+        menu.open(player, this);
+    }
+
+    // Registry'e entry olarak eklenir ve oyuncunun ekranına Inventory açar.
+    public void openInventory(InventoryMenu menu, Player player) {
         this.registerHandledInventory(menu.getInventory(), menu);
         player.openInventory(menu.getInventory());
+    }
+
+    // Dialog'un buton callback'lerini dialog servisi tutar (EranoServices.dialogs()), registry'e gerek yok.
+    // Dialog desteklenmiyorsa (1.21.6 öncesi) UnsupportedOperationException fırlatır; önce
+    // EranoServices.dialogs().isSupported() ile kontrol edip InventoryMenu'ye düşebilirsin.
+    public void openDialog(DialogMenu menu, Player player) {
+        EranoServices.dialogs().show(player, menu);
     }
 
     // Yeni bir registry entry'si eklemek için kullanılan method.

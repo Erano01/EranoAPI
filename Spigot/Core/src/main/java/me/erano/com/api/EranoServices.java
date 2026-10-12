@@ -16,6 +16,9 @@ import me.erano.com.api.hologram.AbstractHologramService;
 import me.erano.com.api.hologram.HologramService;
 import me.erano.com.api.hologram.HologramServiceProvider;
 import me.erano.com.api.hologram.UnsupportedHologramService;
+import me.erano.com.api.menu.dialog.DialogService;
+import me.erano.com.api.menu.dialog.DialogServiceProvider;
+import me.erano.com.api.menu.dialog.UnsupportedDialogService;
 import me.erano.com.common.VersionedService;
 import me.erano.com.common.VersionedServices;
 
@@ -29,6 +32,7 @@ public final class EranoServices {
     private static MessageService messages;
     private static HologramService holograms;
     private static BossBarService bossBars;
+    private static DialogService dialogs;
 
     private EranoServices() {
     }
@@ -43,6 +47,11 @@ public final class EranoServices {
         return require(bossBars);
     }
 
+    /** Minecraft's dialog screens (1.21.6+); see {@link me.erano.com.api.menu.dialog.DialogMenu}. */
+    public static DialogService dialogs() {
+        return require(dialogs);
+    }
+
     /** Client side text markers. */
     public static HologramService holograms() {
         return require(holograms);
@@ -52,6 +61,7 @@ public final class EranoServices {
         messages = select(plugin, MessageServiceProvider.class, MessageServiceProvider::create, new BukkitMessageService());
         holograms = select(plugin, HologramServiceProvider.class, provider -> provider.create(plugin), new UnsupportedHologramService());
         bossBars = select(plugin, BossBarServiceProvider.class, provider -> provider.create(plugin), new UnsupportedBossBarService());
+        dialogs = select(plugin, DialogServiceProvider.class, provider -> provider.create(plugin), new UnsupportedDialogService());
     }
 
     static void disable() {
@@ -64,6 +74,7 @@ public final class EranoServices {
         messages = null;
         holograms = null;
         bossBars = null;
+        dialogs = null;
     }
 
     private static <P extends VersionedService, S> S select(Plugin plugin, Class<P> type, Function<P, S> create, S fallback) {
