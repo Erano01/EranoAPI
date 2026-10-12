@@ -6,6 +6,9 @@ name: Spigot
 # cache and BuildTools only runs for versions that are missing (the very first run builds all 35 and
 # takes a few hours).
 #
+# Paper server jars (scripts/build-paper-jars.sh) live in the same cache: they're downloaded from
+# fill.papermc.io and patched by paperclip, a few minutes for all 32.
+#
 # Releases don't depend on this workflow: the published artifacts (Common, Core, Forge, Fabric) don't
 # need any Spigot server jar.
 
@@ -14,16 +17,20 @@ on:
     branches: [ main ]
     paths:
       - 'Spigot/**'
+      - 'Paper/**'
       - 'Common/**'
       - 'pom.xml'
       - 'scripts/build-spigot-jars.sh'
+      - 'scripts/build-paper-jars.sh'
       - '.github/workflows/spigot.yml'
   pull_request:
     paths:
       - 'Spigot/**'
+      - 'Paper/**'
       - 'Common/**'
       - 'pom.xml'
       - 'scripts/build-spigot-jars.sh'
+      - 'scripts/build-paper-jars.sh'
       - '.github/workflows/spigot.yml'
   # GitHub deletes cache entries nobody accessed for 7 days. Restoring the cache twice a week keeps
   # the Spigot jars alive, and doubles as a check that every NMS module still compiles.
@@ -38,7 +45,7 @@ concurrency:
 
 jobs:
   spigot:
-    name: Spigot (Common + Core + NMS + Dist)
+    name: Spigot (Common + Core + NMS + Paper NMS + Dist)
     runs-on: ubuntu-latest
     timeout-minutes: 340
     steps:
@@ -63,7 +70,7 @@ jobs:
             25
 
       # actions/cache stays on v4 until the first Spigot cache exists: it was saved with v4.
-      - name: Restore ~/.m2 (Spigot jars from BuildTools)
+      - name: Restore ~/.m2 (Spigot jars from BuildTools, Paper jars from paperclip)
         id: m2-restore
         uses: actions/cache/restore@v4
         with:
@@ -73,9 +80,9 @@ jobs:
             m2-spigot-${{ hashFiles('scripts/build-spigot-jars.sh') }}-
             m2-spigot-
 
-      - name: Count Spigot jars before
+      - name: Count server jars before
         id: before
-        run: echo "count=$(find ~/.m2/repository/org/spigotmc/spigot -name '*.jar' 2>/dev/null | wc -l)" >> "$GITHUB_OUTPUT"
+        run: echo "count=$(find ~/.m2/repository/org/spigotmc/spigot ~/.m2/repository/io/papermc/paper/paper-server -name '*.jar' 2>/dev/null | wc -l)" >> "$GITHUB_OUTPUT"
 
       # BuildTools applies patches with git, which needs an identity.
       - name: Configure git for BuildTools
@@ -94,10 +101,21 @@ jobs:
           CLEAN_AFTER_BUILD: '1'
         run: ./scripts/build-spigot-jars.sh
 
-      - name: Count Spigot jars after
+      - name: Install missing Paper jars (paperclip)
+        env:
+          JAVA8_HOME: ${{ env.JAVA_HOME_8_X64 }}
+          JAVA11_HOME: ${{ env.JAVA_HOME_11_X64 }}
+          JAVA17_HOME: ${{ env.JAVA_HOME_17_X64 }}
+          JAVA21_HOME: ${{ env.JAVA_HOME_21_X64 }}
+          JAVA25_HOME: ${{ env.JAVA_HOME_25_X64 }}
+          PAPER_DIR: ${{ runner.temp }}/paper
+          CLEAN_AFTER_BUILD: '1'
+        run: ./scripts/build-paper-jars.sh
+
+      - name: Count server jars after
         id: after
         if: always()
-        run: echo "count=$(find ~/.m2/repository/org/spigotmc/spigot -name '*.jar' 2>/dev/null | wc -l)" >> "$GITHUB_OUTPUT"
+        run: echo "count=$(find ~/.m2/repository/org/spigotmc/spigot ~/.m2/repository/io/papermc/paper/paper-server -name '*.jar' 2>/dev/null | wc -l)" >> "$GITHUB_OUTPUT"
 
       # Only from main (pull requests can read main's cache but would only add entries nobody else can
       # use), only when something new was built (each entry is a few GB, the cache limit is 10 GB), and
@@ -114,7 +132,9 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: buildtools-logs
-          path: ${{ runner.temp }}/buildtools/logs
+          path: |
+            ${{ runner.temp }}/buildtools/logs
+            ${{ runner.temp }}/paper/logs
           if-no-files-found: ignore
 
       - name: Maven build and tests

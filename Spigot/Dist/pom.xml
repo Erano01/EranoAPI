@@ -60,6 +60,8 @@
 		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_8_R3</artifactId><version>${project.version}</version></dependency>
 		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_8_R2</artifactId><version>${project.version}</version></dependency>
 		<dependency><groupId>io.github.erano01</groupId><artifactId>V1_8_R1</artifactId><version>${project.version}</version></dependency>
+		<!-- Paper/NMS: the Paper twins of the revisions above -->
+		<dependency><groupId>io.github.erano01</groupId><artifactId>Paper-V1_21_R7</artifactId><version>${project.version}</version></dependency>
 	</dependencies>
 
 	<build>
@@ -78,6 +80,15 @@
 						<configuration>
 							<transformers>
 								<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+								<!-- Paper 1.20.5+ runs on Mojang's names and remaps plugins it thinks are Spigot-mapped.
+								     This jar holds both: Paper/NMS (Mojang names) for Paper, Spigot/NMS (Spigot names)
+								     for Spigot, picked at runtime (Platform). Declaring it Mojang-mapped turns Paper's
+								     remapper off; Spigot and Paper before 1.20.5 ignore the attribute. -->
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<manifestEntries>
+										<paperweight-mappings-namespace>mojang</paperweight-mappings-namespace>
+									</manifestEntries>
+								</transformer>
 							</transformers>
 						</configuration>
 					</execution>

@@ -1,0 +1,28 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.github.erano01</groupId>
+        <artifactId>EranoAPI</artifactId>
+        <version>1.0.0-alpha.3</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    <artifactId>EranoAPI-Paper-Build</artifactId>
+    <packaging>pom</packaging>
+    <name>EranoAPI Paper</name>
+    <description>The Paper side of EranoAPI: NMS (one module per revision), shaded into the Spigot Dist jar.</description>
+
+    <!-- Only groups the Paper modules (mvn -pl Paper -amd builds them all), nothing here is published. -->
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+        <maven.source.skip>true</maven.source.skip>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
+        <gpg.skip>true</gpg.skip>
+    </properties>
+
+    <modules>
+        <module>NMS</module>
+    </modules>
+
+</project>

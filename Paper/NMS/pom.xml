@@ -1,0 +1,47 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.github.erano01</groupId>
+        <artifactId>EranoAPI</artifactId>
+        <version>1.0.0-alpha.3</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+    <artifactId>EranoAPI-Paper-NMS</artifactId>
+    <packaging>pom</packaging>
+
+    <!-- Internal: the version modules are shaded into Spigot/Dist and never published on their own. -->
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+        <maven.source.skip>true</maven.source.skip>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
+        <gpg.skip>true</gpg.skip>
+    </properties>
+
+    <!-- One module per vX_Y_RZ revision, the Paper twin of Spigot/NMS/<revision>: same version range,
+         compiled against the Paper server of the Minecraft version build-spigot-jars.sh builds.
+         Paper server jars (io.papermc.paper:paper-server:<mc>-local) come from scripts/build-paper-jars.sh.
+         Paper has no v1_8_R1, v1_8_R2 and v1_9_R1. -->
+    <modules>
+        <module>V1_21_R7</module>
+    </modules>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.github.erano01</groupId>
+            <artifactId>EranoAPI-Spigot</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <!-- paper-api and Paper's own libraries, dependencies of the paper-server POMs of 1.18+ -->
+    <repositories>
+        <repository>
+            <id>papermc-repo</id>
+            <url>https://repo.papermc.io/repository/maven-public/</url>
+        </repository>
+    </repositories>
+
+</project>

@@ -3,6 +3,7 @@
 // Linux
 cd ~/JavaWorkspace/EranoAPI-Parent
 ./scripts/build-spigot-jars.sh
+./scripts/build-paper-jars.sh      // Paper server jars, ~/MinecraftWorkspace/Paper (PAPER_DIR)
 
 // Windows
 - /scripts/build-spigot-jars.bat

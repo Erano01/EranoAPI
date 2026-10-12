@@ -23,6 +23,11 @@
             <configuration>
               <transformers>
                 <transformer />
+                <transformer>
+                  <manifestEntries>
+                    <paperweight-mappings-namespace>mojang</paperweight-mappings-namespace>
+                  </manifestEntries>
+                </transformer>
               </transformers>
             </configuration>
           </execution>

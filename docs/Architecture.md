@@ -9,7 +9,9 @@ EranoAPI/
 ├── Spigot/
 │   ├── Core/      EranoAPI-Spigot    the Bukkit API plugins compile against
 │   ├── NMS/V*/    one module per NMS revision (V1_8_R1 … V1_21_R7, V26_1 … V26_3), internal
-│   └── Dist/      EranoAPI.jar       the plugin: Common + Core + every NMS module
+│   └── Dist/      EranoAPI.jar       the plugin: Common + Core + every NMS and Paper NMS module
+├── Paper/
+│   └── NMS/V*/    Paper-V*           the Paper twin of a Spigot NMS revision, internal
 ├── Forge/V*/      EranoAPI-Forge     one Forge MDK per Minecraft version
 ├── Fabric/V*/     EranoAPI-Fabric    one Fabric project per Minecraft version
 └── scripts/       builds, publishing, the version reports
@@ -32,6 +34,31 @@ Group `io.github.erano01`, artifact ids are case sensitive. NMS modules and Spig
 - Each provider declares its `VersionRange`. `VersionedServices.select` takes the highest priority, then the most
   specific range; providers that fail to load are skipped.
 - Classes of newer APIs are only loaded after a version check, so one jar runs on 1.8 and on 26.x.
+
+## Paper and Purpur (Spigot)
+
+Paper (and Purpur, a fork of Paper) patch NMS differently from Spigot, and from 1.20.5 to 1.21.11 run on
+Mojang's names with an unrelocated `org.bukkit.craftbukkit`, where Spigot runs on Spigot's names.
+So every Spigot NMS revision gets a Paper twin:
+
+```
+Spigot/NMS/V1_21_R7   me.erano.com.V1_21_R7.*         Spigot names (reobf), compiled against Spigot
+Paper/NMS/V1_21_R7    me.erano.com.paper.V1_21_R7.*   Paper's names, compiled against Paper
+```
+
+- Both register in the same `META-INF/services` file with the same `VersionRange`. The Paper provider is
+  only available where `Platform.isPaper()` and has `priority() = 1`; the Spigot providers of 1.20.5 -
+  1.21.11 are only available where it's false.
+- `EranoAPI.jar`'s manifest declares `paperweight-mappings-namespace: mojang`, which turns Paper's plugin
+  remapper off. Spigot and Paper before 1.20.5 ignore it.
+- A service without a Paper twin yet falls back to the Bukkit API provider on Paper 1.20.5 - 1.21.11, or
+  logs that it isn't supported.
+- Paper has no build for `v1_8_R1`, `v1_8_R2` and `v1_9_R1`.
+
+| Server | Selected NMS provider |
+|---|---|
+| Spigot | `Spigot/NMS` |
+| Paper / Purpur | `Paper/NMS` |
 - Version names (materials, sounds ...) are generated tables, not code: see [Versioned-APIs.md](Versioned-APIs.md).
 
 ## Supported versions
@@ -57,6 +84,7 @@ the newest spigot-api.
 | Command | Result |
 |---|---|
 | `scripts/build-spigot-jars.sh` | Spigot server jars of every revision into `~/.m2` (BuildTools) |
+| `scripts/build-paper-jars.sh` | Paper server jars of every revision into `~/.m2` (paperclip) |
 | `mvn install` | `Spigot/Dist/target/EranoAPI.jar` |
 | `scripts/build-mods.sh` | every Forge / Fabric jar into `build/mods/` |
 | `scripts/material-report/run.sh`, `scripts/registry-report/run.sh` | the version reports and tables |

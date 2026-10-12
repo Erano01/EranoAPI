@@ -15,7 +15,7 @@ What EranoAPI gives a plugin or mod, by feature. Setup and coordinates: the [pro
 | Boss bars | `EranoServices.bossBars()` | Bukkit `BossBar` on 1.9+; a client-side wither on 1.8 (no colors) |
 | Holograms | `EranoServices.holograms()` | Per viewer, never saved to the world: packets on 1.8 - 1.12, entities hidden from others on 1.13+ (`TextDisplay` on 1.19.4+) |
 | Menus | `Menu`, `MenuButton` | Inventory menus; clicks, shift-clicks and drags can't move items in |
-| TPS | `TPSHandlerFactory` | Paper's `getTPS()`, NMS on Spigot |
+| TPS | `TPSHandlerFactory` | Paper's `getTPS()`, NMS on Spigot and Paper |
 | Plugin channels | `BukkitServerNetwork` | Raw byte messages to client mods (same `ServerNetwork` contract as Forge / Fabric) |
 | Server version | `ServerVersion.current()` | Comparable `MinecraftVersion`, 26.x included |
 
