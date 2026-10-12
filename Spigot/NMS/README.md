@@ -1,26 +1,27 @@
 # NMS Modülleri
 
-Bu klasör, farklı Minecraft sürümleri için NMS (Net Minecraft Server) implementasyonlarını içerir. Her modül, belirli bir Minecraft sürümü (örn. 1.10.R1, 1.21.R4) için özelleştirilmiş kodları barındırır.
+Her NMS revizyonu (`V1_8_R1` … `V1_21_R7`, `V26_1` … `V26_3`) için bir modül. Her biri o revizyonun en yeni
+Minecraft sürümünün Spigot jar'ına karşı derlenir (`scripts/build-spigot-jars.sh`), `Spigot/Dist` hepsini
+`EranoAPI.jar`'a shade eder. Her revizyonun bir de Paper ikizi var: `Paper/NMS/<revizyon>`
+(bkz. [docs/Architecture.md](../../docs/Architecture.md#nms)).
 
-## SPI Mekanizması
+## SPI
 
-Her NMS modülü, kendi SPI (Service Provider Interface) tanımlamasını içermelidir. Bu, uygun ParticleProvider sınıfının otomatik olarak yüklenmesini sağlar.
+Özellik Spigot/Core'da bir arayüzdür (`TPSHandlerFactory`, `HologramServiceProvider`, `MessageServiceProvider`,
+`BossBarServiceProvider`, `IParticleProvider` ...). Bir NMS modülü onu uygular ve
+`src/main/resources/META-INF/services/<arayüzün tam adı>` dosyasına sınıfını yazar. Hepsi `VersionedService`'tir:
+`supportedVersions()` ile sürüm aralığını bildirir, `VersionedServices.select` çalışan sürüme uyanlardan en yüksek
+`priority()`'yi, sonra en dar aralığı seçer. Bukkit API'si ile yapılabilen şey NMS'e değil Core'a yazılır.
 
-### Yeni bir NMS Modülü Eklemek
+## Yeni bir revizyon eklemek
 
-Yeni bir Minecraft sürümü için NMS modülü eklemek istiyorsanız:
+1. `scripts/build-spigot-jars.sh` ve `scripts/build-paper-jars.sh` tablolarına sürümü ekleyip jar'ları kurun.
+2. En yakın modülü kopyalayıp paket adını (`me.erano.com.V1_XX_RX`), `pom.xml`'deki Spigot sürümünü ve
+   `supportedVersions()` aralıklarını güncelleyin. 1.17+ modülleri Mojang isimleriyle derlenip reobf edilir
+   (`specialsource-maven-plugin`); 26.x obfuscated değildir.
+3. Modülü `Spigot/NMS/pom.xml` ve `Spigot/Dist/pom.xml`'e ekleyin; Paper ikizini `Paper/NMS`'e de.
 
-1. İlgili sürüm için yeni bir alt modül oluşturun (örn. V1_XX_RX)
-2. ParticleProvider sınıfını implement edin
-3. `src/main/resources/META-INF/services/me.erano.com.api.particle.ParticleAPI` dosyasını oluşturun
-4. Bu dosyaya ParticleProvider sınıfınızın tam yolunu ekleyin
+## Dist
 
-### Örnek SPI Tanımlaması
-
-```
-me.erano.com.nms.v1_XX_RX.ParticleProvider
-```
-
-## Dist Modülü
-
-Tüm NMS modüllerinin bir araya getirildiği Dist modülü, Maven Shade Plugin ile birlikte ServicesResourceTransformer kullanarak tüm SPI tanımlamalarını birleştirir. Bu sayede tüm sürümler için tek bir JAR dosyası oluşturulur.
+`Spigot/Dist`, Maven Shade Plugin'in `ServicesResourceTransformer`'ı ile bütün modüllerin `META-INF/services`
+dosyalarını birleştirir: tüm sürümler için tek bir jar.

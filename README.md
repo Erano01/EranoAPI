@@ -1,9 +1,11 @@
 # EranoAPI
 
-Version-agnostic Minecraft API for Spigot, Forge and Fabric.
+Version-agnostic Minecraft API for Spigot, Paper, Forge and Fabric, Bedrock players included.
 
-- **Spigot:** one plugin jar for every version from 1.8 to 26.x. Version specific code (NMS) is
-  picked at runtime.
+- **Spigot / Paper:** one plugin jar for every version from 1.8 to 26.x. Version specific code (NMS) is
+  picked at runtime, with its own Paper twin for every revision (Paper / Purpur patch NMS differently).
+- **Bedrock:** Bedrock players on Spigot / Paper through Geyser / Floodgate see dialog menus as Bedrock forms,
+  on every version. Native Bedrock servers (Nukkit, PowerNukkitX, Allay) and the WaterdogPE proxy are next.
 - **Forge / Fabric:** one jar per Minecraft version (1.21.11, 26.1.2, 26.3), all with the same API, so
   your mod's code stays the same across versions.
 - Open source under the MIT license
@@ -22,12 +24,14 @@ Features, architecture and roadmap: [docs/](docs/README.md).
 
 ```
 EranoAPI/
-├── Common/        EranoAPI-Common   platform-agnostic contracts (plain Java 8)
+├── Common/        EranoAPI-Common   platform-agnostic contracts and the menu / dialog model (plain Java 8)
 ├── Cluster/       EranoAPI-Cluster  a minigame network's shared state over MySQL or Redis (plain Java 8)
 ├── Spigot/        (aggregator: mvn -pl Spigot -amd builds Core, NMS and Dist)
 │   ├── Core/      EranoAPI-Spigot   Bukkit-side API, what plugin developers compile against
 │   ├── NMS/       one module per NMS revision (V1_8_R1 … V1_21_R7, V26_1 … V26_3), internal
 │   └── Dist/      EranoAPI.jar      the plugin server owners drop into plugins/
+├── Paper/         Paper's Core (Paper API providers) and NMS twins of every revision, internal
+├── Bedrock/       Crossplay (Geyser / Floodgate), Nukkit, PowerNukkitX, Allay, Waterdog
 ├── Forge/V*/      EranoAPI-Forge    one Forge MDK per Minecraft version
 ├── Fabric/V*/     EranoAPI-Fabric   one Fabric project per Minecraft version
 └── scripts/       build and publishing scripts
@@ -41,7 +45,7 @@ repository needed). Coordinates are case sensitive.
 | Artifact | For | Version | Scope |
 |---|---|---|---|
 | `EranoAPI-Spigot` | Spigot / Paper plugins | `1.0.0-alpha.3` | provided: the EranoAPI plugin supplies it |
-| `EranoAPI-Common` | anything (plain Java 8): `MinecraftVersion`, `YamlUpdate`, plugin channel contracts | `1.0.0-alpha.3` | already inside `EranoAPI-Spigot` / `-Forge` / `-Fabric` |
+| `EranoAPI-Common` | anything (plain Java 8): `MinecraftVersion`, `YamlUpdate`, plugin channel contracts, menu / dialog model | `1.0.0-alpha.3` | already inside `EranoAPI-Spigot` / `-Forge` / `-Fabric` |
 | `EranoAPI-Cluster` | minigame servers, hubs, proxies (plain Java 8) | `1.0.0-alpha.3` | bundled into your jar |
 | `EranoAPI-Fabric` | Fabric mods | `1.0.0-alpha.3+<mc>` | |
 | `EranoAPI-Forge` | Forge mods | `1.0.0-alpha.3+<mc>` | |
@@ -326,6 +330,34 @@ EranoEnchantment.SHARPNESS.enchant(sword, 2);                               // D
 ItemStack potion = EranoPotionType.LONG_SWIFTNESS.parseItem(EranoPotionType.Form.SPLASH, 1);
 ```
 
+### Menus and dialogs
+
+Two kinds of menus, opened the same way: `InventoryMenu` (chest GUI, every version) and `DialogMenu`
+(Minecraft's dialog screen on 1.21.6+: text, text boxes, checkboxes, sliders, option buttons). Both build their
+content in `decorate(player)`. Bedrock players (Geyser / Floodgate) get a `DialogMenu` as a Bedrock form, on every
+version.
+
+```java
+public class SettingsDialog extends DialogMenu<Player> {
+    public SettingsDialog() { super("Settings"); }
+
+    @Override
+    protected void decorate(Player player) {
+        addBody("Hello " + player.getName());
+        addInput(DialogInput.text("nick", "Nickname").initial(player.getName()));
+        addInput(DialogInput.bool("pvp", "PvP").initial(true));
+        addButton(new DialogButton<Player>().label("Save")
+                .consumer(click -> click.getPlayer().sendMessage(click.getText("nick") + " " + click.getBoolean("pvp"))));
+    }
+}
+
+// a dialog where the player can see one (1.21.6+ or Bedrock), a chest GUI otherwise
+Menu<Player> menu = EranoServices.dialogs().isSupported(player) ? new SettingsDialog() : new SettingsInventory();
+menuDispatcher.openMenu(menu, player);
+
+EranoServices.bedrock().isBedrock(player);   // false without Geyser / Floodgate
+```
+
 ### Cluster
 
 What the servers of a minigame network know about each other: every server's arenas and the players on
@@ -341,11 +373,13 @@ publish those and they may not be redistributed, so they're built locally with B
 
 ```bash
 ./scripts/build-spigot-jars.sh          # BuildTools, every NMS revision 1.8 -> 26.x (takes hours the first time)
+./scripts/build-paper-jars.sh           # Paper server jars for Paper/NMS (paperclip; 1.17 - 1.20.4 use the mappings of the step above)
 mvn clean install                       # -> Spigot/Dist/target/EranoAPI.jar
 ./scripts/build-mods.sh                 # every Forge/V* and Fabric/V* project -> build/mods/
 ```
 
-On Windows use `scripts\build-spigot-jars.bat`. JDK requirements per Minecraft version are listed in
+On Windows use `scripts\build-spigot-jars.bat`. Bedrock/Crossplay's Floodgate, Geyser and Cumulus APIs come from
+`repo.opencollab.dev`, Maven fetches them. JDK requirements per Minecraft version are listed in
 [dependencies.md](Dependenceis.md).
 
 ## Releasing

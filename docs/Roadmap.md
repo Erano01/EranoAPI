@@ -15,3 +15,7 @@ What EranoAPI doesn't have yet, roughly in order.
 | Block looks | Facing, double chests, colors: data values on 1.8 - 1.12, `BlockData` after | Core |
 | Attributes, dye colors, item flags | Today's names on every version | Core |
 | Forge / Fabric | More Minecraft versions; NeoForge | per version |
+| Bedrock look checks | Holograms (`TextDisplay`), boss bars, particles as Bedrock players see them through Geyser; Bedrock providers where needed | Bedrock/Crossplay |
+| Native Bedrock servers | The Common menu / dialog model and the services on Nukkit (+ Nukkit-MOT), then PowerNukkitX, Allay | Bedrock/* |
+| Bedrock proxy | Forms, titles, boss bars for any backend (BDS, Endstone, LeviLamina ...) | Bedrock/Waterdog |
+| Paper Core | `PaperTPSHandlerFactory` without reflection; Adventure `Component` text | Paper/Core |

@@ -9,12 +9,12 @@ EranoAPI/
 ├── Spigot/
 │   ├── Core/      EranoAPI-Spigot    the Bukkit API plugins compile against
 │   ├── NMS/V*/    one module per NMS revision (V1_8_R1 … V1_21_R7, V26_1 … V26_3), internal
-│   └── Dist/      EranoAPI.jar       the plugin: Common + Core + Paper Core + every NMS and Paper NMS module
+│   └── Dist/      EranoAPI.jar       the plugin: Common + Core + Paper Core + every NMS and Paper NMS module + Bedrock Crossplay
 ├── Paper/
 │   ├── Core/      EranoAPI-Paper-Core  providers built on Paper's API (no reflection), internal
 │   └── NMS/V*/    Paper-V*           the Paper twin of a Spigot NMS revision, internal
 ├── Bedrock/
-│   ├── Crossplay/    EranoAPI-Bedrock-Crossplay     Bedrock players on Spigot / Paper (Geyser / Floodgate), empty
+│   ├── Crossplay/    EranoAPI-Bedrock-Crossplay     Bedrock players on Spigot / Paper (Geyser / Floodgate), internal
 │   ├── Nukkit/       EranoAPI-Bedrock-Nukkit        Nukkit and Nukkit-MOT, empty
 │   ├── PowerNukkitX/ EranoAPI-Bedrock-PowerNukkitX  PowerNukkitX, empty
 │   ├── Allay/        EranoAPI-Bedrock-Allay         Allay, empty
@@ -42,6 +42,25 @@ Group `io.github.erano01`, artifact ids are case sensitive. NMS modules and Spig
   specific range; providers that fail to load are skipped.
 - Classes of newer APIs are only loaded after a version check, so one jar runs on 1.8 and on 26.x.
 - Version names (materials, sounds ...) are generated tables, not code: see [Versioned-APIs.md](Versioned-APIs.md).
+
+## Menus
+
+The model is platform-free, in `Common` (`me.erano.com.common.menu`): `Menu<P>`, `DialogMenu<P>`, `DialogButton<P>`,
+`DialogClick<P>`, the inputs and `DialogService<P>`, `P` being the platform's player type (Bukkit's `Player`,
+Nukkit's ...). Each platform opens the kinds it can:
+
+| Platform | `InventoryMenu` (chest GUI) | `DialogMenu` |
+|---|---|---|
+| Spigot 1.21.6+ | every version | dialog screen, bungeecord-dialog, clicks back through `PlayerCustomClickEvent` |
+| Paper 1.21.6+ | every version | dialog screen, Paper's dialog API (`Paper/Core`), clicks back through click callbacks |
+| Bedrock player (Geyser / Floodgate) | translated by Geyser | Bedrock form, every version |
+
+- `MenuDispatcher#openMenu` (Spigot/Core) opens either kind; `EranoServices.dialogs()` picks per player:
+  `CrossplayDialogService` sends Bedrock players forms and Java players dialogs.
+- Content is built in `decorate(player)` on every open, like `InventoryMenu`. Button callbacks run on the main
+  thread.
+- Before 1.21.6 Java players get `UnsupportedDialogService`: `isSupported(player)` is false, open an
+  `InventoryMenu` instead.
 
 ## Paper and Purpur (Spigot)
 
@@ -113,10 +132,16 @@ matrix like Spigot's 1.8 - 26.x.
 - **Order: Crossplay, Nukkit / PowerNukkitX, Waterdog, Allay.** Crossplay reaches the most players: every
   Java server EranoAPI supports, Bedrock players included.
 - **Crossplay.** Geyser translates chest GUIs, titles, boss bars and armor stand holograms. What's added is
-  per-player: `isBedrock(player)` and showing `DialogMenu`s as Bedrock forms. Floodgate's API works on
-  every backend, also with Geyser on the proxy; Geyser's own API only where Geyser runs as a plugin.
-  EranoAPI uses whichever is installed (Floodgate, then Geyser) and changes nothing without them.
-  Geyser 2.11.3 doesn't start on Paper 26.3 yet.
+  per-player: `EranoServices.bedrock().isBedrock(player)` and showing `DialogMenu`s as Bedrock forms (Cumulus).
+  Floodgate's API works on every backend, also with Geyser on the proxy; Geyser's own API only where Geyser
+  runs as a plugin. EranoAPI uses whichever is installed (Floodgate `priority 2`, then Geyser `1`, else
+  `NoBedrockService`) and changes nothing without them; `plugin.yml` soft-depends on both so they're enabled
+  first. Their classes are the server's, never shaded.
+- **Geyser and Java versions.** Geyser 2.11.3 joins Bedrock players as a 26.1.x / 26.2 Java client: older
+  servers need ViaVersion, and it doesn't start on Paper 26.3 yet.
+- **Form layout.** No inputs, two buttons, no exit button: modal form. No inputs: simple form (buttons, the
+  exit button last). Inputs: custom form, several buttons become a dropdown at the end. Closing runs the exit
+  button.
 - **Forms work on every Java version.** A Bedrock player sees `DialogMenu`s as forms even on 1.8, since
   forms don't depend on the Java protocol: `TextInput` → input, `BooleanInput` → toggle, `NumberInput` →
   slider, `OptionInput` → dropdown; buttons only → simple form, inputs → custom form.

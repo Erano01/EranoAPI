@@ -81,3 +81,23 @@ net.fabricmc.fabric-api/fabric-api-base/2.0.3+ece063234c/fabric-api-base-2.0.3+e
 net.fabricmc.fabric-api/fabric-lifecycle-events-v1/4.1.1+df84eb3d4c/fabric-lifecycle-events-v1-4.1.1+df84eb3d4c.jar
 net.fabricmc.fabric-api/fabric-message-api-v1/7.0.5+dae8ce3e4c/fabric-message-api-v1-7.0.5+dae8ce3e4c.jar
 ```
+
+## Paper Jars
+`scripts/build-paper-jars.sh`, her revizyon için bir Paper sunucusu indirir, paperclip ile patch'ler ve
+`io.papermc.paper:paper-server:<mc>-local` olarak `.m2`'ye kurar (`~/MinecraftWorkspace/Paper`, `PAPER_DIR`).
+Paper 1.17.1 - 1.20.4 Spigot isimleriyle çalıştığı için bu jar'lar Spigot'un mapping'leriyle (önce
+`build-spigot-jars.sh`) Mojang isimlerine çevrilip `remapped-obf` / `remapped-mojang` olarak da kurulur.
+
+## Bedrock (Crossplay) Jars
+`Bedrock/Crossplay`, `repo.opencollab.dev/main` deposundan sadece derleme için çekilir (Maven indirir):
+
+```
+org.geysermc.floodgate:api:2.2.5-SNAPSHOT
+org.geysermc.geyser:api:2.11.3-SNAPSHOT
+org.geysermc.cumulus:cumulus:1.1.2        // Floodgate ve Geyser'ın form API'si
+```
+
+Sunucuda Geyser ve Floodgate plugin olarak kurulur; sınıfları EranoAPI.jar'a girmez. Geyser 2.11.3,
+Bedrock oyuncusunu Java 26.1.x / 26.2 istemcisi olarak bağlar: daha eski sunucularda ViaVersion gerekir,
+Paper 26.3'te henüz açılmıyor.
+
