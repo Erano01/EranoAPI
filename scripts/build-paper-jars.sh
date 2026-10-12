@@ -197,7 +197,8 @@ print(d["name"], d["checksums"]["sha256"], d["url"])'
 # name data of Paper's command system: in no public repository and not needed to compile.
 libraries() {
     local coords path g a v c
-    unzip -p "$1" META-INF/libraries.list 2>/dev/null | while IFS=$'\t' read -r _ coords path; do
+    # Pre-1.18 paperclip jars have no libraries.list: no libraries, not a failure (pipefail).
+    { unzip -p "$1" META-INF/libraries.list 2>/dev/null || true; } | while IFS=$'\t' read -r _ coords path; do
         IFS=: read -r g a v c <<< "$coords"
         [ "$g" = "io.papermc.parchment.data" ] && continue
         printf '%s %s %s %s %s\n' "$g" "$a" "$v" "${c:--}" "$path"

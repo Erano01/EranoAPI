@@ -44,11 +44,11 @@ repository needed). Coordinates are case sensitive.
 
 | Artifact | For | Version | Scope |
 |---|---|---|---|
-| `EranoAPI-Spigot` | Spigot / Paper plugins | `1.0.0-alpha.3` | provided: the EranoAPI plugin supplies it |
-| `EranoAPI-Common` | anything (plain Java 8): `MinecraftVersion`, `YamlUpdate`, plugin channel contracts, menu / dialog model | `1.0.0-alpha.3` | already inside `EranoAPI-Spigot` / `-Forge` / `-Fabric` |
-| `EranoAPI-Cluster` | minigame servers, hubs, proxies (plain Java 8) | `1.0.0-alpha.3` | bundled into your jar |
-| `EranoAPI-Fabric` | Fabric mods | `1.0.0-alpha.3+<mc>` | |
-| `EranoAPI-Forge` | Forge mods | `1.0.0-alpha.3+<mc>` | |
+| `EranoAPI-Spigot` | Spigot / Paper plugins | `1.0.0-alpha.4` | provided: the EranoAPI plugin supplies it |
+| `EranoAPI-Common` | anything (plain Java 8): `MinecraftVersion`, `YamlUpdate`, plugin channel contracts, menu / dialog model | `1.0.0-alpha.4` | already inside `EranoAPI-Spigot` / `-Forge` / `-Fabric` |
+| `EranoAPI-Cluster` | minigame servers, hubs, proxies (plain Java 8) | `1.0.0-alpha.4` | bundled into your jar |
+| `EranoAPI-Fabric` | Fabric mods | `1.0.0-alpha.4+<mc>` | |
+| `EranoAPI-Forge` | Forge mods | `1.0.0-alpha.4+<mc>` | |
 
 `<mc>` is `1.21.11`, `26.1.2` or `26.3`.
 
@@ -60,7 +60,7 @@ Maven:
 <dependency>
   <groupId>io.github.erano01</groupId>
   <artifactId>EranoAPI-Spigot</artifactId>
-  <version>1.0.0-alpha.3</version>
+  <version>1.0.0-alpha.4</version>
   <scope>provided</scope>
 </dependency>
 ```
@@ -69,7 +69,7 @@ Gradle (Kotlin):
 
 ```kotlin
 dependencies {
-    compileOnly("io.github.erano01:EranoAPI-Spigot:1.0.0-alpha.3")
+    compileOnly("io.github.erano01:EranoAPI-Spigot:1.0.0-alpha.4")
 }
 ```
 
@@ -77,7 +77,7 @@ Gradle (Groovy):
 
 ```groovy
 dependencies {
-    compileOnly 'io.github.erano01:EranoAPI-Spigot:1.0.0-alpha.3'
+    compileOnly 'io.github.erano01:EranoAPI-Spigot:1.0.0-alpha.4'
 }
 ```
 
@@ -102,7 +102,7 @@ Maven:
 <dependency>
   <groupId>io.github.erano01</groupId>
   <artifactId>EranoAPI-Common</artifactId>
-  <version>1.0.0-alpha.3</version>
+  <version>1.0.0-alpha.4</version>
 </dependency>
 ```
 
@@ -110,7 +110,7 @@ Gradle (Kotlin):
 
 ```kotlin
 dependencies {
-    implementation("io.github.erano01:EranoAPI-Common:1.0.0-alpha.3")
+    implementation("io.github.erano01:EranoAPI-Common:1.0.0-alpha.4")
 }
 ```
 
@@ -118,7 +118,7 @@ Gradle (Groovy):
 
 ```groovy
 dependencies {
-    implementation 'io.github.erano01:EranoAPI-Common:1.0.0-alpha.3'
+    implementation 'io.github.erano01:EranoAPI-Common:1.0.0-alpha.4'
 }
 ```
 
@@ -134,7 +134,7 @@ Maven (with the shade plugin):
 <dependency>
   <groupId>io.github.erano01</groupId>
   <artifactId>EranoAPI-Cluster</artifactId>
-  <version>1.0.0-alpha.3</version>
+  <version>1.0.0-alpha.4</version>
 </dependency>
 
 <!-- build/plugins -->
@@ -195,7 +195,7 @@ plugins {
 }
 
 dependencies {
-    implementation("io.github.erano01:EranoAPI-Cluster:1.0.0-alpha.3")
+    implementation("io.github.erano01:EranoAPI-Cluster:1.0.0-alpha.4")
 }
 
 tasks.shadowJar {
@@ -218,7 +218,7 @@ plugins {
 }
 
 dependencies {
-    implementation 'io.github.erano01:EranoAPI-Cluster:1.0.0-alpha.3'
+    implementation 'io.github.erano01:EranoAPI-Cluster:1.0.0-alpha.4'
 }
 
 shadowJar {
@@ -242,8 +242,8 @@ Gradle (Kotlin):
 
 ```kotlin
 dependencies {
-    modImplementation("io.github.erano01:EranoAPI-Fabric:1.0.0-alpha.3+26.3")
-    include("io.github.erano01:EranoAPI-Fabric:1.0.0-alpha.3+26.3")
+    modImplementation("io.github.erano01:EranoAPI-Fabric:1.0.0-alpha.4+26.3")
+    include("io.github.erano01:EranoAPI-Fabric:1.0.0-alpha.4+26.3")
 }
 ```
 
@@ -251,8 +251,8 @@ Gradle (Groovy):
 
 ```groovy
 dependencies {
-    modImplementation 'io.github.erano01:EranoAPI-Fabric:1.0.0-alpha.3+26.3'
-    include 'io.github.erano01:EranoAPI-Fabric:1.0.0-alpha.3+26.3'
+    modImplementation 'io.github.erano01:EranoAPI-Fabric:1.0.0-alpha.4+26.3'
+    include 'io.github.erano01:EranoAPI-Fabric:1.0.0-alpha.4+26.3'
 }
 ```
 
@@ -262,7 +262,7 @@ Maven (coordinates only, e.g. for tooling; Loom itself is Gradle):
 <dependency>
   <groupId>io.github.erano01</groupId>
   <artifactId>EranoAPI-Fabric</artifactId>
-  <version>1.0.0-alpha.3+26.3</version>
+  <version>1.0.0-alpha.4+26.3</version>
 </dependency>
 ```
 
@@ -274,7 +274,7 @@ Gradle (Kotlin):
 
 ```kotlin
 dependencies {
-    implementation("io.github.erano01:EranoAPI-Forge:1.0.0-alpha.3+26.3")
+    implementation("io.github.erano01:EranoAPI-Forge:1.0.0-alpha.4+26.3")
 }
 ```
 
@@ -282,7 +282,7 @@ Gradle (Groovy):
 
 ```groovy
 dependencies {
-    implementation 'io.github.erano01:EranoAPI-Forge:1.0.0-alpha.3+26.3'
+    implementation 'io.github.erano01:EranoAPI-Forge:1.0.0-alpha.4+26.3'
 }
 ```
 
@@ -292,7 +292,7 @@ Maven (coordinates only; ForgeGradle itself is Gradle):
 <dependency>
   <groupId>io.github.erano01</groupId>
   <artifactId>EranoAPI-Forge</artifactId>
-  <version>1.0.0-alpha.3+26.3</version>
+  <version>1.0.0-alpha.4+26.3</version>
 </dependency>
 ```
 
