@@ -36,8 +36,20 @@ public class MenuDispatcher {
         }
     }
 
+    // EranoAPI 1.0.0-alpha.3 ve öncesine karşı derlenmiş plugin'ler bu imzayı çağırır.
+    /** @deprecated use {@link #openMenu(Menu, Player)} with an {@link InventoryMenu} */
+    @Deprecated
+    public void openMenu(me.erano.com.api.menu.Menu menu, Player player) {
+        this.openInventory(menu, player);
+    }
+
     // Registry'e entry olarak eklenir ve oyuncunun ekranına Inventory açar.
+    // Bedrock oyuncusuna setBedrockForm(true) menüler form olarak gösterilir.
     public void openInventory(InventoryMenu menu, Player player) {
+        if (menu.isBedrockForm() && EranoServices.bedrock().isBedrock(player)) {
+            EranoServices.bedrock().forms().show(player, new InventoryFormMenu(menu));
+            return;
+        }
         this.registerHandledInventory(menu.getInventory(), menu);
         player.openInventory(menu.getInventory());
     }

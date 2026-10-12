@@ -11,6 +11,10 @@ import java.util.function.Function;
 //new MenuButton()
 //    .creator(player -> new ItemStack(material))   // görünüm
 //    .consumer(event -> player.playSound(...))      // davranış
+//
+//new MenuButton()
+//    .creator(player -> new ItemStack(material))
+//    .action(player -> ...)                         // envanter event'i olmadan: Bedrock formunda da çalışır
 
 //InventoryButton
 // Lightweight version of Gof Builder
@@ -19,6 +23,7 @@ public class MenuButton {
 
     private Function<Player, ItemStack> iconCreator;
     private Consumer<InventoryClickEvent> eventConsumer;
+    private Consumer<Player> action;
 
     public MenuButton creator(Function<Player, ItemStack> iconCreator) {
         this.iconCreator = iconCreator;
@@ -28,6 +33,19 @@ public class MenuButton {
     public MenuButton consumer(Consumer<InventoryClickEvent> eventConsumer) {
         this.eventConsumer = eventConsumer;
         return this;
+    }
+
+    /**
+     * What a click does, given only who clicked: runs from the chest GUI (inside the click event, when there's no
+     * {@link #consumer}) and from the Bedrock form of an {@link InventoryMenu#setBedrockForm(boolean) InventoryMenu}.
+     */
+    public MenuButton action(Consumer<Player> action) {
+        this.action = action;
+        return this;
+    }
+
+    public Consumer<Player> getAction() {
+        return this.action;
     }
 
     public Consumer<InventoryClickEvent> getEventConsumer() {

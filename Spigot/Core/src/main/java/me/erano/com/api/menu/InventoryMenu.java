@@ -11,8 +11,10 @@ import org.bukkit.inventory.ItemStack;
 
 import me.erano.com.common.menu.Menu;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -22,6 +24,7 @@ public abstract class InventoryMenu implements Menu<Player>, InventoryHandler {
     private final String title;
     private Inventory inventory;
     private final Map<Integer, MenuButton> buttonMap = new HashMap<>();
+    private boolean bedrockForm;
 
     // Alt sınıf createInventory()'yi override etmek zorunda.
     public InventoryMenu() {
@@ -47,6 +50,29 @@ public abstract class InventoryMenu implements Menu<Player>, InventoryHandler {
             this.inventory = this.createInventory();
         }
         return this.inventory;
+    }
+
+    /**
+     * Shows this menu to Bedrock players (Geyser / Floodgate) as a form: one button per {@link MenuButton} with an
+     * {@link MenuButton#action(java.util.function.Consumer) action}, in slot order, labelled with its icon's name and
+     * the last line of its lore. Java players keep the chest GUI. Off by default.
+     */
+    public void setBedrockForm(boolean bedrockForm) {
+        this.bedrockForm = bedrockForm;
+    }
+
+    public boolean isBedrockForm() {
+        return this.bedrockForm;
+    }
+
+    /** The title given to {@link #InventoryMenu(int, String)}, {@code ""} when {@link #createInventory()} is overridden. */
+    public String getTitle() {
+        return this.title == null ? "" : this.title;
+    }
+
+    /** The buttons by slot, in slot order. */
+    public Map<Integer, MenuButton> getButtons() {
+        return Collections.unmodifiableMap(new TreeMap<>(this.buttonMap));
     }
 
     // buttonMap'e yeni bir entry ekler.
@@ -85,6 +111,8 @@ public abstract class InventoryMenu implements Menu<Player>, InventoryHandler {
             Consumer<InventoryClickEvent> consumer = button.getEventConsumer();
             if (consumer != null) {
                 consumer.accept(event);
+            } else if (button.getAction() != null) {
+                button.getAction().accept((Player) event.getWhoClicked());
             }
         }
     }
